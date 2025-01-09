@@ -168,7 +168,7 @@ const FaceLandmarkDetection = () => {
           autoPlay
           playsInline
           muted
-          style={{ width: "100%", height: "auto", position: "relative", zIndex: 1 }}
+          style={{ width: "100%", height: "auto", position: "relative", zIndex: 1, transform: "scaleX(-1)", }}
         ></video>
         <canvas
           ref={canvasRef}
@@ -179,6 +179,7 @@ const FaceLandmarkDetection = () => {
             width: "100%",
             height: "auto",
             zIndex: 2,
+            transform: "scaleX(-1)",
           }}
         ></canvas>
         <canvas
@@ -190,6 +191,7 @@ const FaceLandmarkDetection = () => {
             width: "100%",
             height: "auto",
             zIndex: 2,
+            transform: "scaleX(-1)",
           }}
         ></canvas>
       </div>

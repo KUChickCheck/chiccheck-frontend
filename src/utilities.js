@@ -235,7 +235,7 @@ export const drawMesh = (predictions, ctx, canvas) => {
           ctx.fill();
           ctx.fillStyle = "black";
           ctx.font = "12px Arial";
-          ctx.fillText(point.name, x + 5, y); // Label next to the point
+          // ctx.fillText(point.name, x + 5, y); // Label next to the point
         }
       });
     });
