@@ -62,23 +62,6 @@ const FaceLandmarkDetection = () => {
       guideCanvas.width = video.videoWidth;
       guideCanvas.height = video.videoHeight;
 
-    };
-  };
-
-  // Start predictions at 30 FPS
-  const startPrediction = () => {
-    if (!faceLandmarker || !videoRef.current) return;
-
-    intervalRef.current = setInterval(() => {
-      const video = videoRef.current;
-      const currentTime = performance.now();
-
-      const result = faceLandmarker.detectForVideo(video, currentTime);
-
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-
-      const guideCanvas = guideCanvasRef.current;
       const guideCanvasCTX = guideCanvas.getContext("2d");
 
       const mouthY = (guideCanvas.height / 3) * 2
@@ -105,6 +88,22 @@ const FaceLandmarkDetection = () => {
       guideCanvasCTX.beginPath();
       guideCanvasCTX.arc(eyeRightX, eyeRightY, 5, 0, 2 * Math.PI);
       guideCanvasCTX.fill();
+
+    };
+  };
+
+  // Start predictions at 30 FPS
+  const startPrediction = () => {
+    if (!faceLandmarker || !videoRef.current) return;
+
+    intervalRef.current = setInterval(() => {
+      const video = videoRef.current;
+      const currentTime = performance.now();
+
+      const result = faceLandmarker.detectForVideo(video, currentTime);
+
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
 
       if (result.faceLandmarks.length !== 0) {
 
@@ -146,11 +145,25 @@ const FaceLandmarkDetection = () => {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        padding: "10px", // Add padding for smaller screens
+        boxSizing: "border-box",
       }}
     >
-      <h1>{liveness}</h1>
+      <h1 style={{ fontSize: "1.5rem", textAlign: "center" }}>{liveness}</h1>
       {/* Webcam Detection */}
-      <button onClick={enableWebcam} style={{ marginBottom: "10px" }}>
+      <button
+        onClick={enableWebcam}
+        style={{
+          marginBottom: "10px",
+          padding: "10px 20px",
+          fontSize: "1rem",
+          borderRadius: "5px",
+          backgroundColor: "#007BFF",
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
         Enable Webcam
       </button>
       <div
@@ -159,8 +172,11 @@ const FaceLandmarkDetection = () => {
         style={{
           position: "relative",
           width: "100%",
+          maxWidth: "400px", // Limit width for mobile
           height: "auto",
           overflow: "hidden",
+          // borderRadius: "10px", // Optional for rounded corners
+          // boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Optional for better visuals
         }}
       >
         <video
@@ -168,7 +184,13 @@ const FaceLandmarkDetection = () => {
           autoPlay
           playsInline
           muted
-          style={{ width: "100%", height: "auto", position: "relative", zIndex: 1, transform: "scaleX(-1)", }}
+          style={{
+            width: "100%",
+            height: "auto",
+            position: "relative",
+            zIndex: 1,
+            transform: "scaleX(-1)", // Flip the video horizontally
+          }}
         ></video>
         <canvas
           ref={canvasRef}
@@ -177,9 +199,9 @@ const FaceLandmarkDetection = () => {
             top: 0,
             left: 0,
             width: "100%",
-            height: "auto",
+            height: "100%",
             zIndex: 2,
-            transform: "scaleX(-1)",
+            transform: "scaleX(-1)", // Mirror the canvas
           }}
         ></canvas>
         <canvas
@@ -189,14 +211,15 @@ const FaceLandmarkDetection = () => {
             top: 0,
             left: 0,
             width: "100%",
-            height: "auto",
-            zIndex: 2,
-            transform: "scaleX(-1)",
+            height: "100%",
+            zIndex: 3, // Higher z-index for guide canvas
+            transform: "scaleX(-1)", // Mirror the canvas
           }}
         ></canvas>
       </div>
     </div>
   );
+  
 };
 
 export default FaceLandmarkDetection;
