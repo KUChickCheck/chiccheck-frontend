@@ -17,6 +17,8 @@ const FaceLandmarkDetection = () => {
   const canvasRef = useRef(null);
   const guideCanvasRef = useRef(null);
   const [data, setData] = useState([])
+  const [depth1, setDepth1] = useState("")
+  const [depth2, setDepth2] = useState("")
 
   // Initialize the face landmarker
   useEffect(() => {
@@ -113,6 +115,31 @@ const FaceLandmarkDetection = () => {
 
         const faceLandmarks = result.faceLandmarks[0];
 
+        // Suggested Keypoints
+        const keypoints = {
+          nose: faceLandmarks[1],
+          left_eye: faceLandmarks[468],
+          right_eye: faceLandmarks[473],
+          left_cheek: faceLandmarks[234],
+          right_cheek: faceLandmarks[454],
+          chin: faceLandmarks[152],
+          forehead: faceLandmarks[10],
+        };
+
+        // Calculate Depth Pairs
+        const depthPairs = {
+          depth_leftcheek_to_nose: Math.abs(keypoints.left_cheek.z - keypoints.nose.z),
+          depth_rightcheek_to_nose: Math.abs(keypoints.right_cheek.z - keypoints.nose.z),
+          depth_lefteye_to_nose: Math.abs(keypoints.left_eye.z - keypoints.nose.z),
+          depth_righteye_to_nose: Math.abs(keypoints.right_eye.z - keypoints.nose.z),
+          depth_leftcheek_to_chin: Math.abs(keypoints.left_cheek.z - keypoints.chin.z),
+          depth_rightcheek_to_chin: Math.abs(keypoints.right_cheek.z - keypoints.chin.z),
+          depth_forehead_to_nose: Math.abs(keypoints.forehead.z - keypoints.nose.z),
+        };
+
+        setDepth1(depthPairs.depth_leftcheek_to_nose)
+        setDepth2(depthPairs.depth_rightcheek_to_nose)
+
         // Guide dot coordinates
         const guideCanvas = guideCanvasRef.current;
         const mouthY = (guideCanvas.height / 3) * 2;
@@ -155,29 +182,35 @@ const FaceLandmarkDetection = () => {
           setLiveness("Face aligned");
           if (faceLandmarks.length > 0) {
 
-            // Suggested Keypoints
-            const keypoints = {
-              nose: faceLandmarks[1],
-              left_eye: faceLandmarks[468],
-              right_eye: faceLandmarks[473],
-              left_cheek: faceLandmarks[234],
-              right_cheek: faceLandmarks[454],
-              chin: faceLandmarks[152],
-              forehead: faceLandmarks[10],
-            };
+            // // Suggested Keypoints
+            // const keypoints = {
+            //   nose: faceLandmarks[1],
+            //   left_eye: faceLandmarks[468],
+            //   right_eye: faceLandmarks[473],
+            //   left_cheek: faceLandmarks[234],
+            //   right_cheek: faceLandmarks[454],
+            //   chin: faceLandmarks[152],
+            //   forehead: faceLandmarks[10],
+            // };
 
-            // Calculate Depth Pairs
-            const depthPairs = {
-              depth_leftcheek_to_nose: Math.abs(keypoints.left_cheek.z - keypoints.nose.z),
-              depth_rightcheek_to_nose: Math.abs(keypoints.right_cheek.z - keypoints.nose.z),
-              depth_lefteye_to_nose: Math.abs(keypoints.left_eye.z - keypoints.nose.z),
-              depth_righteye_to_nose: Math.abs(keypoints.right_eye.z - keypoints.nose.z),
-              depth_leftcheek_to_chin: Math.abs(keypoints.left_cheek.z - keypoints.chin.z),
-              depth_rightcheek_to_chin: Math.abs(keypoints.right_cheek.z - keypoints.chin.z),
-              depth_forehead_to_nose: Math.abs(keypoints.forehead.z - keypoints.nose.z),
-            };
+            // // Calculate Depth Pairs
+            // const depthPairs = {
+            //   depth_leftcheek_to_nose: Math.abs(keypoints.left_cheek.z - keypoints.nose.z),
+            //   depth_rightcheek_to_nose: Math.abs(keypoints.right_cheek.z - keypoints.nose.z),
+            //   depth_lefteye_to_nose: Math.abs(keypoints.left_eye.z - keypoints.nose.z),
+            //   depth_righteye_to_nose: Math.abs(keypoints.right_eye.z - keypoints.nose.z),
+            //   depth_leftcheek_to_chin: Math.abs(keypoints.left_cheek.z - keypoints.chin.z),
+            //   depth_rightcheek_to_chin: Math.abs(keypoints.right_cheek.z - keypoints.chin.z),
+            //   depth_forehead_to_nose: Math.abs(keypoints.forehead.z - keypoints.nose.z),
+            // };
 
-            setData((prevData) => [...prevData, depthPairs]);
+            // setDepth1(depthPairs.depth_leftcheek_to_nose)
+            // setDepth2(depthPairs.depth_rightcheek_to_nose)
+
+            // console.log("left: " + depthPairs.depth_leftcheek_to_nose)
+            // console.log("right: " + depthPairs.depth_rightcheek_to_nose)
+
+            // setData((prevData) => [...prevData, depthPairs]);
           }
         } else {
           setLiveness("Face misaligned");
@@ -214,6 +247,9 @@ const FaceLandmarkDetection = () => {
     >
       <h1 style={{ fontSize: "1.5rem", textAlign: "center" }}>{liveness}</h1>
       {/* Webcam Detection */}
+      <p>{Number(depth1).toFixed(4)}</p>
+      <p>{Number(depth2).toFixed(4)}</p>
+
       <button
         onClick={enableWebcam}
         style={{
