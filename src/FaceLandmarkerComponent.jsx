@@ -92,7 +92,6 @@ const FaceLandmarkDetection = () => {
     };
   };
 
-  // Start predictions at 30 FPS
   const startPrediction = () => {
     if (!faceLandmarker || !videoRef.current) return;
 
@@ -106,35 +105,62 @@ const FaceLandmarkDetection = () => {
       const ctx = canvas.getContext("2d");
 
       if (result.faceLandmarks.length !== 0) {
-
         requestAnimationFrame(() => {
           drawMesh(result.faceLandmarks, ctx, canvas);
         });
 
-        const noseTip = result.faceLandmarks[0][1]
-        const leftCheek = result.faceLandmarks[0][234]
-        const rightCheek = result.faceLandmarks[0][454]
-        const Chin = result.faceLandmarks[0][152]
-        const forehead = result.faceLandmarks[0][10]
+        const faceLandmarks = result.faceLandmarks[0];
 
-        const depthNoseLeft = Math.abs(noseTip.z - leftCheek.z)
-        const depthNoseRight = Math.abs(noseTip.z - rightCheek.z)
+        // Guide dot coordinates
+        const guideCanvas = guideCanvasRef.current;
+        const mouthY = (guideCanvas.height / 3) * 2;
+        const mouthX = guideCanvas.width / 2;
 
-        // console.log("left: " + depthNoseLeft + ", z: " + leftCheek.z)
-        // console.log("right: " +depthNoseRight + ", z: " + rightCheek.z)
+        const eyeLeftY = (guideCanvas.height / 2) - 20;
+        const eyeLeftX = (guideCanvas.width / 2) + 60;
 
-        if (depthNoseLeft < 0.2 && depthNoseRight < 0.2) {
-          setLiveness("Spoof")
+        const eyeRightY = (guideCanvas.height / 2) - 20;
+        const eyeRightX = (guideCanvas.width / 2) - 60;
+
+        // Get relevant face landmarks
+        const noseTip = faceLandmarks[1];
+        const rightEye = faceLandmarks[468]; // Adjust based on landmark index for left eye
+        const leftEye = faceLandmarks[473]; // Adjust based on landmark index for right eye
+        const mouthCenter = faceLandmarks[13]; // Adjust based on landmark index for mouth center
+
+        // Calculate distances between landmarks and guide dots
+        const distanceMouth = Math.sqrt(
+          Math.pow(mouthX - mouthCenter.x * guideCanvas.width, 2) + Math.pow(mouthY - mouthCenter.y * guideCanvas.height, 2)
+        );
+
+        const distanceLeftEye = Math.sqrt(
+          Math.pow(eyeLeftX - leftEye.x * guideCanvas.width, 2) + Math.pow(eyeLeftY - leftEye.y * guideCanvas.height, 2)
+        );
+
+        const distanceRightEye = Math.sqrt(
+          Math.pow(eyeRightX - rightEye.x * guideCanvas.width, 2) + Math.pow(eyeRightY - rightEye.y * guideCanvas.height, 2)
+        );
+
+        // Define thresholds (adjust based on your testing)
+        const alignmentThreshold = 20; // Pixels
+
+        // Check if the face is aligned
+        if (
+          distanceMouth < alignmentThreshold &&
+          distanceLeftEye < alignmentThreshold &&
+          distanceRightEye < alignmentThreshold
+        ) {
+          setLiveness("Face aligned");
         } else {
-          setLiveness("Live")
+          setLiveness("Face misaligned");
         }
       } else {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        setLiveness("Face not found")
+        setLiveness("Face not found");
       }
-
-    }, 0); // Approximately 30 FPS
+    }, 0);
   };
+
 
   return (
     <div
@@ -219,7 +245,7 @@ const FaceLandmarkDetection = () => {
       </div>
     </div>
   );
-  
+
 };
 
 export default FaceLandmarkDetection;
