@@ -158,9 +158,9 @@ const FaceLandmarkDetection = () => {
             // Suggested Keypoints
             const keypoints = {
               nose: faceLandmarks[1],
-              left_eye: faceLandmarks[33],
+              left_eye: faceLandmarks[468],
               right_eye: faceLandmarks[473],
-              left_cheek: faceLandmarks[468],
+              left_cheek: faceLandmarks[234],
               right_cheek: faceLandmarks[454],
               chin: faceLandmarks[152],
               forehead: faceLandmarks[10],
@@ -168,6 +168,8 @@ const FaceLandmarkDetection = () => {
 
             // Calculate Depth Pairs
             const depthPairs = {
+              depth_leftcheek_to_nose: Math.abs(keypoints.left_cheek.z - keypoints.nose.z),
+              depth_rightcheek_to_nose: Math.abs(keypoints.right_cheek.z - keypoints.nose.z),
               depth_lefteye_to_nose: Math.abs(keypoints.left_eye.z - keypoints.nose.z),
               depth_righteye_to_nose: Math.abs(keypoints.right_eye.z - keypoints.nose.z),
               depth_leftcheek_to_chin: Math.abs(keypoints.left_cheek.z - keypoints.chin.z),

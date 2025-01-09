@@ -222,6 +222,8 @@ export const drawMesh = (predictions, ctx, canvas) => {
         { name: 'right_cheek', index: 454 }, // Update with the correct index for the right cheek
         { name: 'chin', index: 152 }, // Update with the correct index for the chin
         { name: 'forehead', index: 10 }, // Update with the correct index for the forehead
+        {name: 'right_eye', index: 473},
+        {name: 'left_eye', index: 468}
       ];
 
       keypoints.forEach((point) => {
@@ -235,7 +237,7 @@ export const drawMesh = (predictions, ctx, canvas) => {
           ctx.fill();
           ctx.fillStyle = "black";
           ctx.font = "12px Arial";
-          // ctx.fillText(point.name, x + 5, y); // Label next to the point
+          ctx.fillText(point.name, x + 5, y); // Label next to the point
         }
       });
     });
