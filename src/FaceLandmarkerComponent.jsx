@@ -14,6 +14,7 @@ const FaceLandmarkDetection = () => {
   const liveViewRef = useRef(null);
   const intervalRef = useRef(null);
   const canvasRef = useRef(null);
+  const guideCanvasRef = useRef(null);
 
   // Initialize the face landmarker
   useEffect(() => {
@@ -55,8 +56,12 @@ const FaceLandmarkDetection = () => {
       // Ensure canvas matches video size after it has loaded
       const video = videoRef.current;
       const canvas = canvasRef.current;
+      const guideCanvas = guideCanvasRef.current;
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+      guideCanvas.width = video.videoWidth;
+      guideCanvas.height = video.videoHeight;
+
     };
   };
 
@@ -69,9 +74,38 @@ const FaceLandmarkDetection = () => {
       const currentTime = performance.now();
 
       const result = faceLandmarker.detectForVideo(video, currentTime);
-      // setLandmarks(result.faceLandmarks[0]);
+
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
+
+      const guideCanvas = guideCanvasRef.current;
+      const guideCanvasCTX = guideCanvas.getContext("2d");
+
+      const mouthY = (guideCanvas.height / 3) * 2
+      const mouthX = (guideCanvas.width / 2)
+
+      const eyeLeftY = (guideCanvas.height / 3) + 50
+      const eyeLeftX = (guideCanvas.width / 2) + 60
+
+      const eyeRightY = (guideCanvas.height / 3) + 50
+      const eyeRightX = (guideCanvas.width / 2) - 60
+
+      guideCanvasCTX.fillStyle = "red";
+      // Draw mouth guide
+      guideCanvasCTX.beginPath();
+      guideCanvasCTX.arc(mouthX, mouthY, 5, 0, 2 * Math.PI);
+      guideCanvasCTX.fill();
+
+      // Draw left eye guide
+      guideCanvasCTX.beginPath();
+      guideCanvasCTX.arc(eyeLeftX, eyeLeftY, 5, 0, 2 * Math.PI);
+      guideCanvasCTX.fill();
+
+      // Draw right eye guide
+      guideCanvasCTX.beginPath();
+      guideCanvasCTX.arc(eyeRightX, eyeRightY, 5, 0, 2 * Math.PI);
+      guideCanvasCTX.fill();
+
       if (result.faceLandmarks.length !== 0) {
 
         requestAnimationFrame(() => {
@@ -138,6 +172,17 @@ const FaceLandmarkDetection = () => {
         ></video>
         <canvas
           ref={canvasRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "auto",
+            zIndex: 2,
+          }}
+        ></canvas>
+        <canvas
+          ref={guideCanvasRef}
           style={{
             position: "absolute",
             top: 0,
