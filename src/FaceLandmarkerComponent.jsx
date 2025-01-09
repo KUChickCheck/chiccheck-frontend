@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { writeCSVBrowser } from "./writeCSV";
 // import axios from "axios";
 import {
   FaceLandmarker,
@@ -15,6 +16,7 @@ const FaceLandmarkDetection = () => {
   const intervalRef = useRef(null);
   const canvasRef = useRef(null);
   const guideCanvasRef = useRef(null);
+  const [data, setData] = useState([])
 
   // Initialize the face landmarker
   useEffect(() => {
@@ -151,6 +153,30 @@ const FaceLandmarkDetection = () => {
           distanceRightEye < alignmentThreshold
         ) {
           setLiveness("Face aligned");
+          if (faceLandmarks.length > 0) {
+
+            // Suggested Keypoints
+            const keypoints = {
+              nose: faceLandmarks[1],
+              left_eye: faceLandmarks[33],
+              right_eye: faceLandmarks[473],
+              left_cheek: faceLandmarks[468],
+              right_cheek: faceLandmarks[454],
+              chin: faceLandmarks[152],
+              forehead: faceLandmarks[10],
+            };
+
+            // Calculate Depth Pairs
+            const depthPairs = {
+              depth_lefteye_to_nose: Math.abs(keypoints.left_eye.z - keypoints.nose.z),
+              depth_righteye_to_nose: Math.abs(keypoints.right_eye.z - keypoints.nose.z),
+              depth_leftcheek_to_chin: Math.abs(keypoints.left_cheek.z - keypoints.chin.z),
+              depth_rightcheek_to_chin: Math.abs(keypoints.right_cheek.z - keypoints.chin.z),
+              depth_forehead_to_nose: Math.abs(keypoints.forehead.z - keypoints.nose.z),
+            };
+
+            setData((prevData) => [...prevData, depthPairs]);
+          }
         } else {
           setLiveness("Face misaligned");
         }
@@ -159,6 +185,15 @@ const FaceLandmarkDetection = () => {
         setLiveness("Face not found");
       }
     }, 0);
+  };
+
+
+  const handleExportCSV = () => {
+    if (data.length === 0) {
+      alert("No data to export");
+      return;
+    }
+    writeCSVBrowser(data, "depths.csv");
   };
 
 
@@ -191,6 +226,21 @@ const FaceLandmarkDetection = () => {
         }}
       >
         Enable Webcam
+      </button>
+      <button
+        onClick={handleExportCSV}
+        style={{
+          marginBottom: "10px",
+          padding: "10px 20px",
+          fontSize: "1rem",
+          borderRadius: "5px",
+          backgroundColor: "#28a745",
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        Export CSV
       </button>
       <div
         id="liveView"
