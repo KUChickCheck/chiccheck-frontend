@@ -84,10 +84,10 @@ const FaceLandmarkDetection = () => {
       const mouthY = (guideCanvas.height / 3) * 2
       const mouthX = (guideCanvas.width / 2)
 
-      const eyeLeftY = (guideCanvas.height / 3) + 50
+      const eyeLeftY = (guideCanvas.height / 2) - 20
       const eyeLeftX = (guideCanvas.width / 2) + 60
 
-      const eyeRightY = (guideCanvas.height / 3) + 50
+      const eyeRightY = (guideCanvas.height / 2) - 20
       const eyeRightX = (guideCanvas.width / 2) - 60
 
       guideCanvasCTX.fillStyle = "red";
