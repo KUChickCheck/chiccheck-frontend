@@ -1,13 +1,24 @@
 import React from "react";
 // import FaceDetection from "./FaceDetection";
-import FaceLandmarkerComponent from "./FaceLandmarkerComponent";
+import FaceLandmarkerComponent from "./components/FaceLandmarkerComponent";
+import Login from "./pages/main/Login";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AdminLayout from "./components/AdminLayout";
+import Overview from "./pages/admin/Overview";
 
 function App() {
   return (
-    <div>
-      {/* <FaceDetection /> */}
-      <FaceLandmarkerComponent/>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/facemark" element={<FaceLandmarkerComponent />} />
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="overview" element={<Overview />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

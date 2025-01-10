@@ -1,19 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Ozone";
+  src: url("./assets/fonts/DB Ozone X v3.2.ttf");
+}
+
+@layer base {
+  body {
+    font-family: "Ozone", sans-serif; /* Apply globally to body */
+  }
+}
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-.detection-box {
-  position: absolute;
-  border: 2px solid red;
-}
-
-.bounding-box {
-  position: absolute;
-  border: 2px solid green;
-}
-
-#liveView {
-  position: relative;
 }
