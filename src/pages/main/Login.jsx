@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utilities/api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate()
 
   const login = async (e) => {
     e.preventDefault();
@@ -15,12 +17,12 @@ const Login = () => {
     }
 
     try {
-      const response = await api.post('/kuedu/api/token/pair', {username, password});
-      if (response.access) {
-        const { access } = response;
-        localStorage.setItem('token', access); // Save JWT to localStorage
+      const response = await api.post('/auth/login', {username, password});
+      if (response.token) {
+        const { token } = response;
+        localStorage.setItem('token', token); // Save JWT to localStorage
         localStorage.setItem('username', username);
-        // navigate('/admin'); // Redirect to admin page after login
+        navigate('/');
       }
       // setErrorMessage(response.message);
     } catch (error) {

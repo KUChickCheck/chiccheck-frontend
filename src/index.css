@@ -7,6 +7,17 @@
   src: url("./assets/fonts/DB Ozone X v3.2.ttf");
 }
 
+@font-face {
+  font-family: "Ozone Med";
+  src: url("./assets/fonts/DB Ozone X Med v3.2.ttf");
+}
+
+@font-face {
+  font-family: "Ozone Bd";
+  src: url("./assets/fonts/DB Ozone X Bd v3.2.ttf");
+}
+
+
 @layer base {
   body {
     font-family: "Ozone", sans-serif; /* Apply globally to body */
