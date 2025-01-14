@@ -1,16 +1,18 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 // import FaceDetection from "./FaceDetection";
-import FaceLandmarkerComponent from "./components/FaceLandmarkerComponent";
-import Login from "./pages/main/Login";
+// Lazy loading the components
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AdminLayout from "./components/AdminLayout";
-import Home from "./pages/main/Home";
 import adminRoutes from "./utilities/adminRoutes";
 import ProtectedRoute from "./components/ProtectedRoute";
+const Login = lazy(() => import("./pages/main/Login"));
+const Home = lazy(() => import("./pages/main/Home"));
+const FaceLandmarkerComponent = lazy(() => import("./components/FaceLandmarkerComponent"));
 
 function App() {
   return (
     <BrowserRouter>
+    <Suspense fallback={<div></div>}></Suspense>
       <Routes>
         <Route path="login" element={<Login />} />
         <Route path="" element={<ProtectedRoute user="student"><Home /></ProtectedRoute>}/>
