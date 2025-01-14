@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { writeCSVBrowser } from "../utilities/writeCSV";
+import * as tf from '@tensorflow/tfjs';
 // import axios from "axios";
 import {
   FaceLandmarker,
   FilesetResolver,
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
 import { drawMesh } from "../utilities/drawMesh";
+import api from "../utilities/api";
 
 const FaceLandmarkDetection = () => {
   const [faceLandmarker, setFaceLandmarker] = useState(null);
@@ -14,11 +16,43 @@ const FaceLandmarkDetection = () => {
   const videoRef = useRef(null);
   const liveViewRef = useRef(null);
   const intervalRef = useRef(null);
+  const intervalLivenessRef = useRef(null);
   const canvasRef = useRef(null);
   const guideCanvasRef = useRef(null);
   const [data, setData] = useState([])
   const [depth1, setDepth1] = useState("")
   const [depth2, setDepth2] = useState("")
+  const [model, setModel] = useState(null);
+  const [confidence, setConfidence] = useState("")
+
+  const loadModel = async () => {
+    try {
+      const loadedModel = await tf.loadLayersModel('/model/model.json');
+      setModel(loadedModel);
+      console.log('Model loaded successfully');
+    } catch (error) {
+      console.error('Error loading model:', error);
+    }
+  };
+
+  const preprocessImage = async (imageElement, targetSize = [150, 150]) => {
+    const tensor = tf.browser.fromPixels(imageElement)
+      .resizeNearestNeighbor(targetSize) // Resize the image
+      .toFloat() // Convert the image to float
+      .div(tf.scalar(255)) // Normalize the image
+      .expandDims(0); // Add batch dimension
+
+    return tensor;
+  };
+
+  useEffect(() => {
+    loadModel();
+
+    // Clean up interval on component unmount
+    return () => {
+      if (intervalLivenessRef.current) clearInterval(intervalLivenessRef.current);
+    };
+  }, []);
 
   // Initialize the face landmarker
   useEffect(() => {
@@ -231,13 +265,70 @@ const FaceLandmarkDetection = () => {
     writeCSVBrowser(data, "depths.csv");
   };
 
+  const handleCaptureAndPredict = async () => {
+    if (!model || !videoRef.current) return;
+
+    intervalLivenessRef.current = setInterval(async () => {
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Preprocess and make prediction
+      const inputTensor = await preprocessImage(canvas);
+      // Dispose the tensor once it's no longer needed
+      const predictionResult = model.predict(inputTensor);
+      predictionResult.array().then((result) => {
+        setConfidence(result[0][0]);
+        predictionResult.dispose(); // Dispose prediction tensor after use
+        inputTensor.dispose(); // Dispose input tensor after use
+      });
+    }, 200);
+  };
+
+  const generateBase64 = async () => {
+    if (!videoRef.current) {
+      alert("Webcam not enabled");
+      return;
+    }
+
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const base64Image = canvas.toDataURL("image/png");
+
+    try {
+      const response = await api.post(import.meta.env.VITE_API_URL + "/face/verify", {
+        student_code: "6410546114",
+        photo: base64Image
+      })
+
+      console.log(response)
+    } catch (error) {
+      console.error(error)
+    }
+
+    // Display the Base64 string (for testing purposes)
+    // alert("Base64 image generated! Check the console.");
+  };
+
+
 
   return (
-    <div className="w-full max-w-md mx-auto h-screen flex flex-col justify-center items-center px-4 box-border">
+    <div className="w-full max-w-md mx-auto h-screen flex flex-col items-center px-4 box-border">
       <h1 className="text-3xl font-bold underline text-center sm:text-xl">{liveness}</h1>
       {/* Webcam Detection */}
       <p>{Number(depth1).toFixed(4)}</p>
       <p>{Number(depth2).toFixed(4)}</p>
+      <p>{confidence}</p>
 
       <button
         onClick={enableWebcam}
@@ -246,11 +337,24 @@ const FaceLandmarkDetection = () => {
         Enable Webcam
       </button>
       <button
+        onClick={handleCaptureAndPredict}
+        className="mb-2 px-4 py-2 text-lg rounded bg-blue-600 text-white hover:bg-blue-700"
+      >
+        Check Liveness
+      </button>
+      <button
         onClick={handleExportCSV}
         className="mb-2 px-4 py-2 text-lg rounded bg-green-600 text-white hover:bg-green-700"
       >
         Export CSV
       </button>
+      <button
+        onClick={generateBase64}
+        className="mb-2 px-4 py-2 text-lg rounded bg-purple-600 text-white hover:bg-purple-700"
+      >
+        Generate Base64
+      </button>
+
       <div
         id="liveView"
         ref={liveViewRef}

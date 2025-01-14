@@ -5,9 +5,10 @@ import { Link, useNavigate } from "react-router-dom";
 const HeaderComponent = ({ title }) => {
   const navigate = useNavigate();
 
-  const logout = () => {
-    // api.logout();
-    // navigate("/signin");
+  const logout = async () => {
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
+    navigate("/login")
   };
 
   return (

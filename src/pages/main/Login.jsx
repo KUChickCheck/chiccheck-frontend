@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utilities/api';
 
@@ -7,6 +7,23 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const verifyToken = async () => {
+      try {
+        const token = localStorage.getItem("token")
+        const response = await api.post("/auth/verify-token", { role: "student" }, {
+          Authorization: `Bearer ${token}`
+        });
+        if (response.valid) {
+          navigate('/')
+        }
+      } catch (error) {
+        console.error('Token verification failed:', error);
+      }
+    };
+    verifyToken()
+  }, []);
 
   const login = async (e) => {
     e.preventDefault();
@@ -17,11 +34,11 @@ const Login = () => {
     }
 
     try {
-      const response = await api.post('/auth/login', {username, password});
+      const response = await api.post('/auth/student/login', { username, password });
       if (response.token) {
-        const { token } = response;
+        const { token, user } = response;
         localStorage.setItem('token', token); // Save JWT to localStorage
-        localStorage.setItem('username', username);
+        localStorage.setItem('user', JSON.stringify(user));
         navigate('/');
       }
       // setErrorMessage(response.message);
@@ -36,9 +53,9 @@ const Login = () => {
     <div className="container mx-auto px-4 flex items-center justify-center h-screen">
       <div className="w-full max-w-md">
         <div className='flex justify-center items-center mb-6 gap-1'>
-      <img src="/chiccheck.svg" alt="" width={32}/>
-        <h1 className="text-center text-3xl font-bold">
-          ChicCheck
+          <img src="/chiccheck.svg" alt="" width={32} />
+          <h1 className="text-center text-3xl font-bold">
+            ChicCheck
           </h1>
 
         </div>
