@@ -54,7 +54,7 @@ const ClassCard = ({ classObject }) => {
                     </p>
                 </div>
                 <div className="flex justify-between">
-                    <h5 className="text-xl font-bold">{classObject.class_name}</h5>
+                    <h5 className="text-xl font-bold truncate">{classObject.class_name}</h5>
                     <p className="text-sm">{classObject.schedule.start_time} - {classObject.schedule.end_time}</p>
                 </div>
             </div>
