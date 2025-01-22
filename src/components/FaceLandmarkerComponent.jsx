@@ -27,7 +27,8 @@ const FaceLandmarkDetection = () => {
 
   const loadModel = async () => {
     try {
-      const loadedModel = await tf.loadLayersModel('/model/model.json');
+      const loadedModel = await tf.loadGraphModel('graph_model/model.json');
+      console.log(loadModel)
       setModel(loadedModel);
       console.log('Model loaded successfully');
     } catch (error) {
@@ -277,16 +278,21 @@ const FaceLandmarkDetection = () => {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Preprocess and make prediction
-      const inputTensor = await preprocessImage(canvas);
-      // Dispose the tensor once it's no longer needed
-      const predictionResult = model.predict(inputTensor);
-      predictionResult.array().then((result) => {
-        setConfidence(result[0][0]);
-        predictionResult.dispose(); // Dispose prediction tensor after use
-        inputTensor.dispose(); // Dispose input tensor after use
-      });
-    }, 200);
+      // Preprocess the image and make prediction
+      const inputTensor = await preprocessImage(canvas, [224, 224]);
+
+      // Use model.execute() for Graph model predictions (no control flow required)
+      const predictionResult = model.execute(inputTensor);
+
+      // Assuming the model output is a single value or tensor of predictions
+      const prediction = predictionResult.dataSync()[0]; // Modify if you have a different output structure
+
+      setConfidence(prediction > 0.5 ? "Spoof": "Live");
+
+      // Dispose tensors after use to prevent memory leaks
+      predictionResult.dispose();
+      inputTensor.dispose();
+    }, 100); // Capture every 0.1 second
   };
 
   const generateBase64 = async () => {
