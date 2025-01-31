@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { loginUser } from '../../store/actions/authActions';
 import Cookies from "js-cookie";
 
-const Login = () => {
+const AdminLogin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,10 +17,9 @@ const Login = () => {
       try {
         const token = Cookies.get("token") ? Cookies.get("token") : null;
         if (!token) return;
-        console.log(token)
         const response = await api.post(
           "/auth/verify-token",
-          { role: "student" }, // You can send the role as part of the request body
+          { role: "teacher" }, // You can send the role as part of the request body
           {
             headers: {
               Authorization: `Bearer ${token}`, // Correct placement for the Authorization header
@@ -49,7 +48,7 @@ const Login = () => {
     }
   
     try {
-      const response = await dispatch(loginUser({ username, password }, "student"));
+      const response = await dispatch(loginUser({ username, password }, "teacher"));
       if (response.type === "LOGIN_SUCCESS") {
         navigate("/");
       } else {
@@ -67,7 +66,7 @@ const Login = () => {
         <div className='flex justify-center items-center mb-6 gap-1'>
           <img src="/chiccheck.svg" alt="" width={32} />
           <h1 className="text-center text-3xl font-bold">
-            ChicCheck
+            ChicCheck For Teacher
           </h1>
 
         </div>
@@ -109,4 +108,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;

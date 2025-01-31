@@ -3,9 +3,10 @@ import React, { Suspense, lazy } from "react";
 // Lazy loading the components
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AdminLayout from "./components/AdminLayout";
-import adminRoutes from "./utilities/adminRoutes";
-import ProtectedRoute from "./components/ProtectedRoute";
-const Login = lazy(() => import("./pages/main/Login"));
+import adminRoutes from "./routes/adminRoutes";
+import PrivateRoute from "./routes/PrivateRoute";
+import Login from "./pages/main/Login";
+import AdminLogin from "./pages/admin/AdminLogin";
 const Home = lazy(() => import("./pages/main/Home"));
 const FaceLandmarkerComponent = lazy(() => import("./components/FaceLandmarkerComponent"));
 
@@ -15,11 +16,11 @@ function App() {
     <Suspense fallback={<div></div>}></Suspense>
       <Routes>
         <Route path="login" element={<Login />} />
-        <Route path="" element={<ProtectedRoute user="student"><Home /></ProtectedRoute>}/>
-        <Route path="facemark" element={<ProtectedRoute user="student"><FaceLandmarkerComponent /></ProtectedRoute>}/>
+        <Route requiredRole="student" path="" element={<PrivateRoute requiredRole="student"><Home /></PrivateRoute>}/>
+        <Route path="facemark" element={<FaceLandmarkerComponent />}/>
 
         {/* Admin Routes */}
-        <Route path="admin/login" element={<Login />} />
+        <Route path="admin/login" element={<AdminLogin />} />
         <Route path="admin" element={<AdminLayout />}>
           {adminRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />

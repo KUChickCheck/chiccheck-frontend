@@ -287,7 +287,7 @@ const FaceLandmarkDetection = () => {
       // Assuming the model output is a single value or tensor of predictions
       const prediction = predictionResult.dataSync()[0]; // Modify if you have a different output structure
 
-      setConfidence(prediction > 0.5 ? "Spoof": "Live");
+      setConfidence(prediction > 0.7 ? "Spoof": "Live");
 
       // Dispose tensors after use to prevent memory leaks
       predictionResult.dispose();
@@ -313,7 +313,7 @@ const FaceLandmarkDetection = () => {
 
     try {
       const response = await api.post(import.meta.env.VITE_API_URL + "/face/verify", {
-        student_code: "6410546114",
+        student_code: "----",
         photo: base64Image
       })
 

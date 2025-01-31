@@ -1,6 +1,7 @@
 // src/utils/axiosInstance.js
 
 import axios from "axios";
+import Cookies from "js-cookie";
 
 // Create an instance of axios with default settings
 const axiosInstance = axios.create({
@@ -11,7 +12,7 @@ const axiosInstance = axios.create({
 // Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token"); // Assuming token is stored in localStorage
+    const token = Cookies.get("token"); // Assuming token is stored in localStorage
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }

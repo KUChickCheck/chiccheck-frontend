@@ -2,7 +2,7 @@ import React from 'react'
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import AdminSidebar from './AdminSidebar'
-import adminRoutes from '../utilities/adminRoutes'
+import adminRoutes from '../routes/adminRoutes'
 
 const AdminLayout = () => {
     const [isVisible, setIsVisible] = useState(true)

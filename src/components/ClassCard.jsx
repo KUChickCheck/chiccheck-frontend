@@ -1,17 +1,21 @@
 import React from "react";
+import { useEffect } from "react";
+import api from "../utilities/api";
+import { useSelector } from "react-redux";
 
 const ClassCard = ({ classObject }) => {
     // Helper to check if current time is within the specified range
-    const isCurrentDay = () => {
+    const { user, token } = useSelector((state) => state.auth);
+    useEffect(() => {
         try {
-            const { days } = classObject.schedule;
-            const currentDay = new Date().toLocaleString("en-US", { weekday: "long" }); // e.g., "Monday"
-            return currentDay === days;
+            if (!user || !user.student_id) {
+              console.error("User information is missing in localStorage.");
+              return;
+            }
         } catch (error) {
-            console.error("Error checking day:", error.message);
-            return false;
+            console.error(error)
         }
-    };
+    }, []);
 
     const isCurrentTimeInRange = () => {
         try {
@@ -36,12 +40,22 @@ const ClassCard = ({ classObject }) => {
         }
     };
 
-    // Check if the card should be rendered
-    if (!isCurrentDay()) {
-        return null; // Do not render the card if the day does not match
-    }
-
     const isActive = isCurrentTimeInRange();
+
+    const handleMarkAttendance = async (class_id) => {
+        try {
+            if (isActive) {
+                const response = await api.post('/attendance', {
+                    student_id: user._id,
+                    class_id: class_id,
+                })
+                alert(response.message)
+            } 
+        } catch (error) {
+            console.log(error)
+            alert(error.request.response)
+        }
+    }
 
     return (
         <div className="w-full h-32 rounded-xl p-4 shadow-custom flex flex-col justify-between">
@@ -73,6 +87,10 @@ const ClassCard = ({ classObject }) => {
                                 : "bg-gray-300 cursor-not-allowed"
                             } text-white text-xs font-semibold py-1 px-3 rounded`}
                         disabled={!isActive}
+                        onClick={(e) => {
+                            e.preventDefault(); // Prevents default behavior (if applicable)
+                            handleMarkAttendance(classObject._id);
+                          }}
                     >
                         Check In
                     </button>
