@@ -311,10 +311,14 @@ const FaceScan = () => {
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Dark background with transparency
     ctx.fillRect(0, 0, width, height); // Fill entire canvas
 
-    // Cut out the oval (make it transparent)
-    ctx.globalCompositeOperation = "destination-out"; 
+    ctx.globalCompositeOperation = "destination-out";
+  
+    // Use the smaller dimension to keep proportions the same
+    const minSize = Math.min(width, height);
+    const ovalWidth = minSize * 0.25;  // 40% of minSize (narrower)
+    const ovalHeight = minSize * 0.35; // 70% of minSize (taller)
     ctx.beginPath();
-    ctx.ellipse(width / 2, height / 2, height / 5, width / 4, 0, 0, 2 * Math.PI);
+    ctx.ellipse(width / 2, height / 2,ovalWidth, ovalHeight, 0, 0, 2 * Math.PI);
     ctx.fill();
 
     // Reset globalCompositeOperation for normal drawing
@@ -322,7 +326,7 @@ const FaceScan = () => {
     ctx.strokeStyle = isInside ? "green" : "red"; 
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.ellipse(width / 2, height / 2, height / 5, width / 4, 0, 0, 2 * Math.PI);
+    ctx.ellipse(width / 2, height / 2, ovalWidth, ovalHeight, 0, 0, 2 * Math.PI);
     ctx.stroke();
 };
 
@@ -330,8 +334,11 @@ const FaceScan = () => {
   const isFaceInsideOval = (landmarks, width, height) => {
     const ovalX = width / 2;
     const ovalY = height / 2;
-    const ovalWidth = width / 4;
-    const ovalHeight = height / 3;
+    const minSize = Math.min(width, height);
+    const ovalWidth = minSize * 0.25;  // 40% of minSize (narrower)
+    const ovalHeight = minSize * 0.35; // 70% of minSize (taller)
+    // const ovalWidth = width / 4;
+    // const ovalHeight = height / 3;
   
     // Select 5 key points from MediaPipe FaceLandmarker
     const top = landmarks[10];   // Forehead
@@ -356,7 +363,7 @@ const FaceScan = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto h-screen flex flex-col items-center px-4 box-border">
+    <div className="w-full max-w-md mx-auto h-screen flex flex-col items-center justify-center px-4 box-border">
       {/* <h1 className="text-3xl font-bold underline text-center sm:text-xl">{liveness}</h1> */}
       {/* Webcam Detection */}
       {/* <p>{Number(depth1).toFixed(4)}</p>
