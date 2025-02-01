@@ -7,6 +7,7 @@ import adminRoutes from "./routes/adminRoutes";
 import PrivateRoute from "./routes/PrivateRoute";
 import Login from "./pages/main/Login";
 import AdminLogin from "./pages/admin/AdminLogin";
+import FaceScan from "./pages/main/FaceScan";
 const Home = lazy(() => import("./pages/main/Home"));
 const FaceLandmarkerComponent = lazy(() => import("./components/FaceLandmarkerComponent"));
 
@@ -17,6 +18,7 @@ function App() {
       <Routes>
         <Route path="login" element={<Login />} />
         <Route requiredRole="student" path="" element={<PrivateRoute requiredRole="student"><Home /></PrivateRoute>}/>
+        <Route requiredRole="student" path="/face-scan" element={<PrivateRoute requiredRole="student"><FaceScan /></PrivateRoute>}/>
         <Route path="facemark" element={<FaceLandmarkerComponent />}/>
 
         {/* Admin Routes */}
