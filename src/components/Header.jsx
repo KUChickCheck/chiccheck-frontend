@@ -18,7 +18,7 @@ const HeaderComponent = ({ title }) => {
       <div className="container mx-auto py-2 flex justify-between items-center">
         {/* Logo */}
         <div>
-          <Link href="/" className="text-decoration-none">
+          <Link to="/" className="text-decoration-none">
             <img
               src="/chiccheck.svg"
               alt="chiccheck-logo"

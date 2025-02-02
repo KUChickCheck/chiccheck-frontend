@@ -28,3 +28,27 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+/* Style the select dropdown */
+.select-wrapper {
+  position: relative;
+}
+
+/* Hide the default arrow */
+.select-wrapper select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Add a custom right arrow using a pseudo-element */
+.select-wrapper::after {
+  @apply text-primary;
+  content: '\25BC'; /* Unicode character for a downward arrow */
+  font-size: 10px;
+  position: absolute;
+  top: 50%;
+  right: 16px; /* Adjust the position of the arrow */
+  transform: translateY(-36%);
+  pointer-events: none;
+}

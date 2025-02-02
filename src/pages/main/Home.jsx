@@ -3,6 +3,7 @@ import HeaderComponent from "../../components/Header";
 import ClassCard from "../../components/ClassCard";
 import api from "../../utilities/api";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   // Mock data for multiple class objects
@@ -60,7 +61,9 @@ const Home = () => {
         </div>
 
         <div>
-          <img src="/statIcon.png" alt="stat-icon" />
+          <Link to="/report">
+          <img src="/statIcon.png" alt="stat-icon" className="hover:scale-110 transition-transform"/>
+          </Link>
         </div>
       </div>
 
