@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect } from "react";
-import api from "../utilities/api";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 const ClassCard = ({ classObject }) => {
     // Helper to check if current time is within the specified range
@@ -9,8 +9,8 @@ const ClassCard = ({ classObject }) => {
     useEffect(() => {
         try {
             if (!user || !user.student_id) {
-              console.error("User information is missing in localStorage.");
-              return;
+                console.error("User information is missing in localStorage.");
+                return;
             }
         } catch (error) {
             console.error(error)
@@ -42,20 +42,7 @@ const ClassCard = ({ classObject }) => {
 
     const isActive = isCurrentTimeInRange();
 
-    const handleMarkAttendance = async (class_id) => {
-        try {
-            if (isActive) {
-                const response = await api.post('/attendance', {
-                    student_id: user._id,
-                    class_id: class_id,
-                })
-                alert(response.message)
-            } 
-        } catch (error) {
-            console.log(error)
-            alert(error.request.response)
-        }
-    }
+
 
     return (
         <div className="w-full h-32 rounded-xl p-4 shadow-custom flex flex-col justify-between">
@@ -81,19 +68,18 @@ const ClassCard = ({ classObject }) => {
                     ))}
                 </div>
                 <div className="flex gap-2">
-                    <button
+
+                    <Link
+                        to={`/facescan/${classObject._id}`}
                         className={`${isActive
-                                ? "bg-teal-700 hover:bg-teal-800"
-                                : "bg-gray-300 cursor-not-allowed"
-                            } text-white text-xs font-semibold py-1 px-3 rounded`}
-                        disabled={!isActive}
-                        onClick={(e) => {
-                            e.preventDefault(); // Prevents default behavior (if applicable)
-                            handleMarkAttendance(classObject._id);
-                          }}
+                            ? "bg-teal-700 hover:bg-teal-800"
+                            : "bg-gray-300 cursor-not-allowed"
+                            } text-white text-xs font-semibold py-1 px-3 rounded flex justify-center items-center`}
+                        style={{ pointerEvents: isActive ? "auto" : "none" }} // Prevents clicking if disabled
                     >
                         Check In
-                    </button>
+                    </Link>
+
                     <button
                         className="border border-teal-700 text-teal-700 text-xs font-semibold py-1 px-3 rounded"
                     >
