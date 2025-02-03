@@ -453,6 +453,8 @@ const FaceScan = () => {
       navigate("/")
 
     } catch (error) {
+      setVerifyLoading(false)
+      
       Swal.fire({
         icon: "error",
         title: error.response.data.message,
