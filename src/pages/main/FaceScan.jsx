@@ -227,22 +227,22 @@ const FaceScan = () => {
         const insideOval = isFaceInsideOval(faceLandmarks, guideCanvas.width, guideCanvas.height);
         drawOval(guideCanvasCTX, guideCanvas.width, guideCanvas.height, insideOval);
 
-        // if (insideOval && !hasGenerated) {
-        //   markAttendance(faceLandmarks);
-        //   hasGenerated = true; // Prevent further calls
-        // }
+        if (insideOval && !hasGenerated) {
+          markAttendance(faceLandmarks);
+          hasGenerated = true; // Prevent further calls
+        }
 
-        // if (!insideOval) {
-        //   hasGenerated = false;
-        // }
+        if (!insideOval) {
+          hasGenerated = false;
+        }
 
-        if (insideOval) {
+        //if (insideOval) {
           // if (!isTracking) {
           //   isTracking = true;
           //   startTime = performance.now();
           // }
-          handleCaptureAndPredict();
-        } 
+          //handleCaptureAndPredict();
+        //} 
         // else {
         //   isTracking = false
         //   setRealFrames(0)
