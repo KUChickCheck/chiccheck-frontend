@@ -28,7 +28,6 @@ const FaceLandmarkDetection = () => {
   const loadModel = async () => {
     try {
       const loadedModel = await tf.loadGraphModel('graph_model/model.json');
-      console.log(loadModel)
       setModel(loadedModel);
       console.log('Model loaded successfully');
     } catch (error) {

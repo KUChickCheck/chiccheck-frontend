@@ -34,12 +34,13 @@ const FaceScan = () => {
   const [loading, setLoading] = useState(false)
   const [verifyLoading, setVerifyLoading] = useState(false)
 
+  const [realFrames, setRealFrames] = useState(0)
+
   const navigate = useNavigate()
 
   const loadModel = async () => {
     try {
-      const loadedModel = await tf.loadGraphModel('graph_model/model.json');
-      console.log(loadModel)
+      const loadedModel = await tf.loadGraphModel('/graph_model/model.json');
       setModel(loadedModel);
       console.log('Model loaded successfully');
     } catch (error) {
@@ -157,9 +158,23 @@ const FaceScan = () => {
   const startPrediction = () => {
     if (!faceLandmarker || !videoRef.current) return;
 
+    let totalFrames = 0;
+    const duration = 3000; // 3 seconds
+    let startTime = null;
+    let isTracking = false;
+
     intervalRef.current = setInterval(() => {
       const video = videoRef.current;
       const currentTime = performance.now();
+
+      // console.log(currentTime - startTime)
+      // if (isTracking && currentTime - startTime > duration) {
+      //   clearInterval(intervalRef.current);
+      //   const realPercentage = (realFrames / totalFrames) * 100;
+      //   console.log(realFrames)
+      //   setLiveness(realPercentage >= 20 ? "Live" : "Fake");
+      //   return;
+      // }
 
       const result = faceLandmarker.detectForVideo(video, currentTime);
 
@@ -207,18 +222,33 @@ const FaceScan = () => {
 
         // // Guide dot coordinates
 
+        guideCanvasCTX.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
 
         const insideOval = isFaceInsideOval(faceLandmarks, guideCanvas.width, guideCanvas.height);
         drawOval(guideCanvasCTX, guideCanvas.width, guideCanvas.height, insideOval);
 
-        if (insideOval && !hasGenerated) {
-          markAttendance(faceLandmarks);
-          hasGenerated = true; // Prevent further calls
-        }
+        // if (insideOval && !hasGenerated) {
+        //   markAttendance(faceLandmarks);
+        //   hasGenerated = true; // Prevent further calls
+        // }
 
         // if (!insideOval) {
         //   hasGenerated = false;
         // }
+
+        if (insideOval) {
+          // if (!isTracking) {
+          //   isTracking = true;
+          //   startTime = performance.now();
+          // }
+          handleCaptureAndPredict();
+        } 
+        // else {
+        //   isTracking = false
+        //   setRealFrames(0)
+        // }
+        // totalFrames++;
+        
 
         // const mouthY = (guideCanvas.height / 3) * 2;
         // const mouthX = guideCanvas.width / 2;
@@ -251,9 +281,9 @@ const FaceScan = () => {
         // // Define thresholds (adjust based on your testing)
         // const alignmentThreshold = 20; // Pixels
 
-        handleCaptureAndPredict()
+        
         // Check if the face is aligned
-        setLiveness("Face aligned");
+        // setLiveness("Face aligned");
         if (faceLandmarks.length > 0) {
           // handleCaptureAndPredict()
 
@@ -289,38 +319,44 @@ const FaceScan = () => {
         }
       } else {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        guideCanvasCTX.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
+        // guideCanvasCTX.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
         setLiveness("Face not found");
       }
     }, 0);
   };
 
   const handleCaptureAndPredict = () => {
-    // if (!model || !videoRef.current) return;
-
-    //   const video = videoRef.current;
-    //   const canvas = document.createElement("canvas");
-    //   canvas.width = video.videoWidth;
-    //   canvas.height = video.videoHeight;
-
-    //   const ctx = canvas.getContext("2d");
-    //   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    //   // Preprocess the image and make prediction
-    //   const inputTensor = preprocessImage(canvas, [224, 224]);
-
-    //   // Use model.execute() for Graph model predictions (no control flow required)
-    //   const predictionResult = model.execute(inputTensor);
-
-    //   // Assuming the model output is a single value or tensor of predictions
-    //   const prediction = predictionResult.dataSync()[0]; // Modify if you have a different output structure
-
-    //   setConfidence(prediction > 0.7 ? "Spoof": "Live");
-
-    //   // Dispose tensors after use to prevent memory leaks
-    //   predictionResult.dispose();
-    //   inputTensor.dispose();
+    if (!model || !videoRef.current) return;
+  
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+  
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+    // ใช้ tf.tidy() เพื่อลด Memory Leak
+    tf.tidy(() => {
+      const inputTensor = preprocessImage(canvas, [224, 224]); // สร้าง input tensor
+  
+      // ใช้ model.execute() และให้ tf.tidy จัดการ memory ให้อัตโนมัติ
+      const predictionResult = model.execute(inputTensor);
+      
+      const prediction = predictionResult.dataSync()[0]; // ดึงค่าออกมาเป็น JS array
+      setConfidence(prediction)
+      // if (prediction < 0.9) {
+        
+      //   setRealFrames((prev) => prev + 1);
+      //   console.log(realFrames)
+      // }
+    });
+  
+    // ลบ canvas หลังใช้งาน
+    canvas.remove();
   };
+  
+
 
   const drawOval = (ctx, width, height, isInside) => {
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Dark background with transparency
@@ -500,17 +536,17 @@ const FaceScan = () => {
       </div>
 
       {verifyLoading && (
-        <div id="loading-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60">
+        <div id="loading-overlay" className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60">
 
-          <svg class="animate-spin h-8 w-8 text-white mr-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+          <svg className="animate-spin h-8 w-8 text-white mr-3" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor"
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
             </path>
           </svg>
 
-          <span class="text-white text-3xl font-bold">FaceVerify...</span>
+          <span className="text-white text-3xl font-bold">FaceVerify...</span>
 
         </div>
       )}
