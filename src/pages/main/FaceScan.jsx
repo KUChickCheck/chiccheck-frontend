@@ -41,6 +41,8 @@ const FaceScan = () => {
 
   const navigate = useNavigate()
 
+  
+
   const loadModel = async () => {
     try {
       const loadedModel = await tf.loadGraphModel('/graph_model/model.json');
@@ -90,8 +92,6 @@ const FaceScan = () => {
 
     initializeFaceLandmarker();
 
-
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -104,6 +104,21 @@ const FaceScan = () => {
     }
   }, [faceLandmarker]);
 
+  let stream = null;
+
+  const stopWebcam = () => {
+    if (stream) {
+      const tracks = stream.getTracks();
+      tracks.forEach(track => track.stop());
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopWebcam();
+    };
+  }, []);
+
   // Enable webcam and start detection
   const enableWebcam = async () => {
     if (!faceLandmarker) {
@@ -113,7 +128,7 @@ const FaceScan = () => {
 
     try {
       const constraints = { video: true };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
       videoRef.current.srcObject = stream;
     } catch (error) {
       if (error.name === "NotAllowedError") {
@@ -125,7 +140,7 @@ const FaceScan = () => {
       } else {
         alert("An error occurred: " + error.message);
       }
-
+      stopWebcam();
       navigate("/")
     }
 
@@ -200,6 +215,7 @@ const FaceScan = () => {
           showConfirmButton: false,
           timer: 3000
         });
+        stopWebcam();
         navigate("/")
         return;
       }
@@ -530,7 +546,7 @@ const FaceScan = () => {
           timer: 3000
         });
       }
-
+      stopWebcam();
       navigate("/")
 
     } catch (error) {
@@ -542,7 +558,7 @@ const FaceScan = () => {
         showConfirmButton: false,
         timer: 3000
       });
-
+      stopWebcam();
       navigate("/")
     }
   };
