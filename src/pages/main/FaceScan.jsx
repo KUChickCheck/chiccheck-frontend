@@ -560,26 +560,15 @@ const FaceScan = () => {
       <p>{confidence}</p> */}
       <div className="flex flex-col justify-center items-center mb-4">
         <div>
-          {faceInside ? (
-            <video
-              src="/face-scan.mp4"
-              alt="face scan animation"
-              className="w-10 object-cover [clip-path:inset(10%)]"
-              autoPlay
-              loop
-              muted
-            />
-          ) : (
-            <img
-              src="/face-frame.png"
-              alt="face frame"
-              className="w-10 object-cover [clip-path:inset(10%)]"
-            />
-          )}
+          <img
+            src={faceInside ? "/face-scan.gif" : "/face-frame.png"}
+            alt="face scan animation"
+            className="w-10 object-cover [clip-path:inset(10%)]"
+          />
         </div>
-          <h5 className="text-xl">
-            {faceInside ? "Stay inside the circle." : "Move your face into the circle."}
-          </h5>
+        <h5 className="text-xl">
+          {faceInside ? "Stay inside the circle." : "Move your face into the circle."}
+        </h5>
       </div>
 
       <div
