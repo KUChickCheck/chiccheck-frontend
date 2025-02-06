@@ -552,21 +552,34 @@ const FaceScan = () => {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto h-screen flex flex-col items-center justify-center px-4 box-border">
+    <div className="w-full max-w-md mx-auto h-screen flex flex-col items-center mt-10 px-4 box-border">
       {/* <h1 className="text-3xl font-bold underline text-center sm:text-xl">{liveness}</h1> */}
       {/* Webcam Detection */}
       {/* <p>{Number(depth1).toFixed(4)}</p>
       <p>{Number(depth2).toFixed(4)}</p>
       <p>{confidence}</p> */}
       <div className="flex flex-col justify-center items-center mb-4">
-        <img
-          src={faceInside ? "/face-scan.gif" : "/face-frame.png"}
-          alt="face scan animation"
-          className="w-10 object-cover [clip-path:inset(10%)]"
-        />
-        <h5 className="text-xl">
-          {faceInside ? "Stay inside the circle." : "Move your face into the circle."}
-        </h5>
+        <div>
+          {faceInside ? (
+            <video
+              src="/face-scan.mp4"
+              alt="face scan animation"
+              className="w-10 object-cover [clip-path:inset(10%)]"
+              autoPlay
+              loop
+              muted
+            />
+          ) : (
+            <img
+              src="/face-frame.png"
+              alt="face frame"
+              className="w-10 object-cover [clip-path:inset(10%)]"
+            />
+          )}
+        </div>
+          <h5 className="text-xl">
+            {faceInside ? "Stay inside the circle." : "Move your face into the circle."}
+          </h5>
       </div>
 
       <div
