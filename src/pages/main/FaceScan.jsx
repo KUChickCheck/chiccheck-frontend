@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { writeCSVBrowser } from "../../utilities/writeCSV";
 import * as tf from '@tensorflow/tfjs';
 import { useSelector } from "react-redux";
+
 // import axios from "axios";
 import {
   FaceLandmarker,
@@ -12,6 +13,7 @@ import api from "../../utilities/api";
 import Loading from "../../components/Loading";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from 'sweetalert2'
+// import LinearProgress from '@mui/material/LinearProgress';
 
 const FaceScan = () => {
   const { user } = useSelector((state) => state.auth);
@@ -33,6 +35,7 @@ const FaceScan = () => {
   const [faceInside, setFaceInside] = useState(false)
   const [loading, setLoading] = useState(false)
   const [verifyLoading, setVerifyLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
 
   const [realFrames, setRealFrames] = useState(0)
 
@@ -108,9 +111,23 @@ const FaceScan = () => {
       return;
     }
 
-    const constraints = { video: true };
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    videoRef.current.srcObject = stream;
+    try {
+      const constraints = { video: true };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoRef.current.srcObject = stream;
+    } catch (error) {
+      if (error.name === "NotAllowedError") {
+        alert("Permission denied: Please allow webcam access.");
+      } else if (error.name === "NotFoundError") {
+        alert("No webcam found. Please connect a camera.");
+      } else if (error.name === "NotReadableError") {
+        alert("Webcam is being used by another application.");
+      } else {
+        alert("An error occurred: " + error.message);
+      }
+
+      navigate("/")
+    }
 
     videoRef.current.onloadeddata = () => {
       // Ensure canvas matches video size after it has loaded
@@ -176,6 +193,17 @@ const FaceScan = () => {
       //   return;
       // }
 
+      if (isTracking && currentTime - startTime > duration) {
+        Swal.fire({
+          icon: "error",
+          title: "You are fake!!",
+          showConfirmButton: false,
+          timer: 3000
+        });
+        navigate("/")
+        return;
+      }
+
       const result = faceLandmarker.detectForVideo(video, currentTime);
 
       const canvas = canvasRef.current;
@@ -225,31 +253,46 @@ const FaceScan = () => {
         guideCanvasCTX.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
 
         const insideOval = isFaceInsideOval(faceLandmarks, guideCanvas.width, guideCanvas.height);
+        setFaceInside(insideOval)
         drawOval(guideCanvasCTX, guideCanvas.width, guideCanvas.height, insideOval);
 
         if (insideOval && !hasGenerated) {
-          // markAttendance(faceLandmarks);
-          // hasGenerated = true; // Prevent further calls
-          // return;
+
+          if (!isTracking) {
+            startTime = performance.now();
+            isTracking = true;
+          }
+          setProgress((Math.abs(currentTime - startTime) / duration) * 100)
+          // const imageCheck = handleCaptureAndPredict()
+          const imageCheck = true
+          if (depthPairs.depth_leftcheek_to_nose >= "0.2" && depthPairs.depth_leftcheek_to_nose >= "0.2") {
+            if (imageCheck) {
+              markAttendance(faceLandmarks);
+              hasGenerated = true; // Prevent further calls
+              return;
+            }
+          }
         }
 
         if (!insideOval) {
           hasGenerated = false;
+          isTracking = false;
+          setProgress(0)
         }
 
         //if (insideOval) {
-          // if (!isTracking) {
-          //   isTracking = true;
-          //   startTime = performance.now();
-          // }
-          //handleCaptureAndPredict();
+        // if (!isTracking) {
+        //   isTracking = true;
+        //   startTime = performance.now();
+        // }
+        //handleCaptureAndPredict();
         //} 
         // else {
         //   isTracking = false
         //   setRealFrames(0)
         // }
         // totalFrames++;
-        
+
 
         // const mouthY = (guideCanvas.height / 3) * 2;
         // const mouthX = guideCanvas.width / 2;
@@ -282,7 +325,7 @@ const FaceScan = () => {
         // // Define thresholds (adjust based on your testing)
         // const alignmentThreshold = 20; // Pixels
 
-        
+
         // Check if the face is aligned
         // setLiveness("Face aligned");
         if (faceLandmarks.length > 0) {
@@ -328,35 +371,36 @@ const FaceScan = () => {
 
   const handleCaptureAndPredict = () => {
     if (!model || !videoRef.current) return;
-  
+
     const video = videoRef.current;
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-  
+
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+    let prediction;
+
     // ใช้ tf.tidy() เพื่อลด Memory Leak
     tf.tidy(() => {
       const inputTensor = preprocessImage(canvas, [224, 224]); // สร้าง input tensor
-  
+
       // ใช้ model.execute() และให้ tf.tidy จัดการ memory ให้อัตโนมัติ
       const predictionResult = model.execute(inputTensor);
-      
-      const prediction = predictionResult.dataSync()[0]; // ดึงค่าออกมาเป็น JS array
-      setConfidence(prediction)
+
+      prediction = predictionResult.dataSync()[0]; // ดึงค่าออกมาเป็น JS array
+      // setConfidence(prediction)
       // if (prediction < 0.9) {
-        
+
       //   setRealFrames((prev) => prev + 1);
       //   console.log(realFrames)
       // }
     });
-  
     // ลบ canvas หลังใช้งาน
     canvas.remove();
+    return prediction <= "0.7"
   };
-  
+
 
 
   const drawOval = (ctx, width, height, isInside) => {
@@ -491,7 +535,7 @@ const FaceScan = () => {
 
     } catch (error) {
       setVerifyLoading(false)
-      
+
       Swal.fire({
         icon: "error",
         title: error.response.data.message,
@@ -511,9 +555,11 @@ const FaceScan = () => {
     <div className="w-full max-w-md mx-auto h-screen flex flex-col items-center justify-center px-4 box-border">
       {/* <h1 className="text-3xl font-bold underline text-center sm:text-xl">{liveness}</h1> */}
       {/* Webcam Detection */}
-      <p>{Number(depth1).toFixed(4)}</p>
+      {/* <p>{Number(depth1).toFixed(4)}</p>
       <p>{Number(depth2).toFixed(4)}</p>
-      <p>{confidence}</p>
+      <p>{confidence}</p> */}
+      <h5 className="text-xl">{faceInside ? "Stay inside the circle." : "Move your face into the circle."}</h5>
+
       <div
         id="liveView"
         ref={liveViewRef}
@@ -534,7 +580,17 @@ const FaceScan = () => {
           ref={guideCanvasRef}
           className="absolute top-0 left-0 w-full h-full z-30 transform -scale-x-100"
         ></canvas>
+        <img
+          src="/face-scan.gif"
+          alt=""
+          className="w-10 absolute bottom-0 left-1/2 -translate-x-1/2 z-50 object-cover [clip-path:inset(10%)]"
+        />
       </div>
+
+      {/* <div className="w-full mt-4 flex items-center justify-center">
+        <img src="/face-scan.gif" alt="" className="w-12" />
+        <LinearProgress variant="determinate" value={progress} sx={{ height: 10 }}/>
+      </div> */}
 
       {verifyLoading && (
         <div id="loading-overlay" className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60">
