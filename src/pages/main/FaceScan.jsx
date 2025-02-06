@@ -558,7 +558,16 @@ const FaceScan = () => {
       {/* <p>{Number(depth1).toFixed(4)}</p>
       <p>{Number(depth2).toFixed(4)}</p>
       <p>{confidence}</p> */}
-      <h5 className="text-xl">{faceInside ? "Stay inside the circle." : "Move your face into the circle."}</h5>
+      <div className="flex flex-col justify-center items-center mb-4">
+        <img
+          src={faceInside ? "/face-scan.gif" : "/face-frame.png"}
+          alt="face scan animation"
+          className="w-10 object-cover [clip-path:inset(10%)]"
+        />
+        <h5 className="text-xl">
+          {faceInside ? "Stay inside the circle." : "Move your face into the circle."}
+        </h5>
+      </div>
 
       <div
         id="liveView"
@@ -580,17 +589,7 @@ const FaceScan = () => {
           ref={guideCanvasRef}
           className="absolute top-0 left-0 w-full h-full z-30 transform -scale-x-100"
         ></canvas>
-        <img
-          src="/face-scan.gif"
-          alt=""
-          className="w-10 absolute bottom-0 left-1/2 -translate-x-1/2 z-50 object-cover [clip-path:inset(10%)]"
-        />
       </div>
-
-      {/* <div className="w-full mt-4 flex items-center justify-center">
-        <img src="/face-scan.gif" alt="" className="w-12" />
-        <LinearProgress variant="determinate" value={progress} sx={{ height: 10 }}/>
-      </div> */}
 
       {verifyLoading && (
         <div id="loading-overlay" className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60">
