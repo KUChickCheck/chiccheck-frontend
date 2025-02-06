@@ -228,8 +228,9 @@ const FaceScan = () => {
         drawOval(guideCanvasCTX, guideCanvas.width, guideCanvas.height, insideOval);
 
         if (insideOval && !hasGenerated) {
-          markAttendance(faceLandmarks);
-          hasGenerated = true; // Prevent further calls
+          // markAttendance(faceLandmarks);
+          // hasGenerated = true; // Prevent further calls
+          // return;
         }
 
         if (!insideOval) {
@@ -510,8 +511,8 @@ const FaceScan = () => {
     <div className="w-full max-w-md mx-auto h-screen flex flex-col items-center justify-center px-4 box-border">
       {/* <h1 className="text-3xl font-bold underline text-center sm:text-xl">{liveness}</h1> */}
       {/* Webcam Detection */}
-      {/* <p>{Number(depth1).toFixed(4)}</p>
-      <p>{Number(depth2).toFixed(4)}</p> */}
+      <p>{Number(depth1).toFixed(4)}</p>
+      <p>{Number(depth2).toFixed(4)}</p>
       <p>{confidence}</p>
       <div
         id="liveView"
