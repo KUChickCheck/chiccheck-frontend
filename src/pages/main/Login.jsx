@@ -17,7 +17,6 @@ const Login = () => {
       try {
         const token = Cookies.get("token") ? Cookies.get("token") : null;
         if (!token) return;
-        console.log(token)
         const response = await api.post(
           "/auth/verify-token",
           { role: "student" }, // You can send the role as part of the request body
