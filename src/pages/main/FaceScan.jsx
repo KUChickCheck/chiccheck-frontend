@@ -155,34 +155,7 @@ const FaceScan = () => {
       canvas.height = video.videoHeight;
       guideCanvas.width = video.videoWidth;
       guideCanvas.height = video.videoHeight;
-      const guideCanvasCTX = guideCanvas.getContext("2d");
       startPrediction();
-
-
-      // const mouthY = (guideCanvas.height / 3) * 2
-      // const mouthX = (guideCanvas.width / 2)
-
-      // const eyeLeftY = (guideCanvas.height / 2) - 20
-      // const eyeLeftX = (guideCanvas.width / 2) + 60
-
-      // const eyeRightY = (guideCanvas.height / 2) - 20
-      // const eyeRightX = (guideCanvas.width / 2) - 60
-
-      // guideCanvasCTX.fillStyle = "red";
-      // // Draw mouth guide
-      // guideCanvasCTX.beginPath();
-      // guideCanvasCTX.arc(mouthX, mouthY, 5, 0, 2 * Math.PI);
-      // guideCanvasCTX.fill();
-
-      // // Draw left eye guide
-      // guideCanvasCTX.beginPath();
-      // guideCanvasCTX.arc(eyeLeftX, eyeLeftY, 5, 0, 2 * Math.PI);
-      // guideCanvasCTX.fill();
-
-      // // Draw right eye guide
-      // guideCanvasCTX.beginPath();
-      // guideCanvasCTX.arc(eyeRightX, eyeRightY, 5, 0, 2 * Math.PI);
-      // guideCanvasCTX.fill();
 
     };
   };
@@ -337,38 +310,6 @@ const FaceScan = () => {
         //   setRealFrames(0)
         // }
         // totalFrames++;
-
-
-        // const mouthY = (guideCanvas.height / 3) * 2;
-        // const mouthX = guideCanvas.width / 2;
-
-        // const eyeLeftY = (guideCanvas.height / 2) - 20;
-        // const eyeLeftX = (guideCanvas.width / 2) + 60;
-
-        // const eyeRightY = (guideCanvas.height / 2) - 20;
-        // const eyeRightX = (guideCanvas.width / 2) - 60;
-
-        // // Get relevant face landmarks
-        // const noseTip = faceLandmarks[1];
-        // const rightEye = faceLandmarks[468]; // Adjust based on landmark index for left eye
-        // const leftEye = faceLandmarks[473]; // Adjust based on landmark index for right eye
-        // const mouthCenter = faceLandmarks[13]; // Adjust based on landmark index for mouth center
-
-        // // Calculate distances between landmarks and guide dots
-        // const distanceMouth = Math.sqrt(
-        //   Math.pow(mouthX - mouthCenter.x * guideCanvas.width, 2) + Math.pow(mouthY - mouthCenter.y * guideCanvas.height, 2)
-        // );
-
-        // const distanceLeftEye = Math.sqrt(
-        //   Math.pow(eyeLeftX - leftEye.x * guideCanvas.width, 2) + Math.pow(eyeLeftY - leftEye.y * guideCanvas.height, 2)
-        // );
-
-        // const distanceRightEye = Math.sqrt(
-        //   Math.pow(eyeRightX - rightEye.x * guideCanvas.width, 2) + Math.pow(eyeRightY - rightEye.y * guideCanvas.height, 2)
-        // );
-
-        // // Define thresholds (adjust based on your testing)
-        // const alignmentThreshold = 20; // Pixels
 
 
         // Check if the face is aligned
