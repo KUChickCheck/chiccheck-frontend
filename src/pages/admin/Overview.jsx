@@ -13,6 +13,7 @@ const Overview = () => {
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [attendanceList, setAttendanceList] = useState([])
+  const [classScheduleDay, setClassScheduleDay] = useState("");
 
   const getClassesName = async () => {
     try {
@@ -31,6 +32,13 @@ const Overview = () => {
   const handleChange = async (e) => {
     const class_id = e.target.value
     setSelectedClass(class_id); // Get the value of the selected option
+    setSelectedDate(null)
+
+    // Find the selected class to get the schedule day
+    const selectedClassData = classes.find(cls => cls._id === class_id);
+    if (selectedClassData) {
+      setClassScheduleDay(selectedClassData.schedule.days);
+    }
   }
 
   const getClassAttendanceByDate = async () => {
@@ -42,6 +50,21 @@ const Overview = () => {
     }
   }
 
+    // Function to disable all dates except the selected schedule day
+    const disableNonMatchingDays = (date) => {
+      if (!classScheduleDay) return false; // Don't disable any date if no class is selected
+      const daysMap = {
+        Sunday: 0,
+        Monday: 1,
+        Tuesday: 2,
+        Wednesday: 3,
+        Thursday: 4,
+        Friday: 5,
+        Saturday: 6,
+      };
+      return date.day() !== daysMap[classScheduleDay];
+    };
+
   useEffect(() => {
     if (selectedClass && selectedDate) {
       getClassAttendanceByDate()
@@ -50,7 +73,7 @@ const Overview = () => {
 
   return (
     <div>
-      <div className='flex items-center gap-4 mb-5'>
+      <div className='grid grid-cols-3 items-center gap-4 mb-5'>
 
         <div className="select-wrapper">
           <select
@@ -73,6 +96,7 @@ const Overview = () => {
               value={selectedDate}
               onChange={(newValue) => setSelectedDate(newValue)}
               slotProps={{ textField: { size: "small" } }}
+              shouldDisableDate={disableNonMatchingDays}
             />
           </div>
         </LocalizationProvider>
@@ -95,11 +119,16 @@ const Overview = () => {
                 <td className="py-3 px-6">{student.first_name}</td>
                 <td className="py-3 px-6">{student.last_name}</td>
                 <td
-                  className={`py-3 px-6 font-semibold ${student.status === "Present" ? "text-green-600" : "text-red-600"
+                  className={`py-3 px-6 font-semibold ${student.status === "Present"
+                    ? "text-green-600"
+                    : student.status === "Late"
+                      ? "text-yellow-600"
+                      : "text-red-600"
                     }`}
                 >
                   {student.status}
                 </td>
+
                 {student.timestamp ?
                   <td className="py-3 px-6">{new Date(student.timestamp).toLocaleString()}</td>
                   :
