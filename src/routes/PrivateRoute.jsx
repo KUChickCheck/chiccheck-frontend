@@ -48,7 +48,7 @@ const PrivateRoute = ({ children, requiredRole }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={requiredRole === "student" ? "/login" : "/admin/login"} replace />;
   }
 
   return children;
