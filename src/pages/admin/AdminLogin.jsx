@@ -27,10 +27,8 @@ const AdminLogin = () => {
           }
         );
         
-
-        console.log(response)
         if (response.valid) {
-          navigate('/')
+          navigate('/admin/overview')
         }
       } catch (error) {
         console.error('Token verification failed:', error);
@@ -50,7 +48,7 @@ const AdminLogin = () => {
     try {
       const response = await dispatch(loginUser({ username, password }, "teacher"));
       if (response.type === "LOGIN_SUCCESS") {
-        navigate("/");
+        navigate("/admin/overview");
       } else {
         setError("Invalid username or password.");
       }

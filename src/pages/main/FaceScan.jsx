@@ -38,6 +38,8 @@ const FaceScan = () => {
   const [progress, setProgress] = useState(0)
 
   const [realFrames, setRealFrames] = useState(0)
+  const [left, setLeft] = useState(false)
+  const [right, setRight] = useState(false)
 
   const navigate = useNavigate()
 
@@ -45,7 +47,7 @@ const FaceScan = () => {
 
   const loadModel = async () => {
     try {
-      const loadedModel = await tf.loadGraphModel('/graph_model/model.json');
+      const loadedModel = await tf.loadGraphModel('/liveness_model_graph/model.json');
       setModel(loadedModel);
       console.log('Model loaded successfully');
     } catch (error) {
@@ -194,6 +196,8 @@ const FaceScan = () => {
     const duration = 3000; // 3 seconds
     let startTime = null;
     let isTracking = false;
+    let turnLeft = false
+    let turnRight = false
 
     intervalRef.current = setInterval(() => {
       const video = videoRef.current;
@@ -264,6 +268,16 @@ const FaceScan = () => {
         setDepth1(depthPairs.depth_leftcheek_to_nose)
         setDepth2(depthPairs.depth_rightcheek_to_nose)
 
+        const headTurnPct = calculateHeadTurnPercentage(depthPairs.depth_leftcheek_to_nose, depthPairs.depth_rightcheek_to_nose);
+          
+        // setHeadTurnPercentage(headTurnPct);
+
+        const direction = depthPairs.depth_leftcheek_to_nose > depthPairs.depth_rightcheek_to_nose ? 'Right' : (depthPairs.depth_rightcheek_to_nose > depthPairs.depth_leftcheek_to_nose ? 'Left' : 'Center');
+        // console.log(direction);
+        // console.log(headTurnPct)
+
+
+
         // // Guide dot coordinates
 
         guideCanvasCTX.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
@@ -272,22 +286,37 @@ const FaceScan = () => {
         setFaceInside(insideOval)
         drawOval(guideCanvasCTX, guideCanvas.width, guideCanvas.height, insideOval);
 
+
+
         if (insideOval && !hasGenerated) {
 
-          if (!isTracking) {
-            startTime = performance.now();
-            isTracking = true;
-          }
-          setProgress((Math.abs(currentTime - startTime) / duration) * 100)
-          // const imageCheck = handleCaptureAndPredict()
-          const imageCheck = true
-          if (depthPairs.depth_leftcheek_to_nose >= "0.2" && depthPairs.depth_leftcheek_to_nose >= "0.2") {
-            if (imageCheck) {
-              markAttendance(faceLandmarks);
-              hasGenerated = true; // Prevent further calls
-              return;
-            }
-          }
+          // if (direction === "Right" && headTurnPct >= 60) {
+          //   turnRight = true
+          // }
+  
+          // if (direction === "Left" && headTurnPct >= 60) {
+          //   turnLeft = true
+          // }
+  
+          // if (turnRight && turnLeft) {
+          //   navigate('/')
+          //   return;
+          // }
+
+          // if (!isTracking) {
+          //   startTime = performance.now();
+          //   isTracking = true;
+          // }
+          // setProgress((Math.abs(currentTime - startTime) / duration) * 100)
+          const imageCheck = handleCaptureAndPredict()
+          // const imageCheck = true
+          // if (depthPairs.depth_leftcheek_to_nose >= "0.2" && depthPairs.depth_leftcheek_to_nose >= "0.2") {
+          //   if (imageCheck) {
+          //     markAttendance(faceLandmarks);
+          //     hasGenerated = true; // Prevent further calls
+          //     return;
+          //   }
+          // }
         }
 
         if (!insideOval) {
@@ -372,6 +401,8 @@ const FaceScan = () => {
           setDepth1(depthPairs.depth_leftcheek_to_nose)
           setDepth2(depthPairs.depth_rightcheek_to_nose)
 
+          // setTurnDirection(direction);
+
           // console.log("left: " + depthPairs.depth_leftcheek_to_nose)
           // console.log("right: " + depthPairs.depth_rightcheek_to_nose)
 
@@ -399,22 +430,49 @@ const FaceScan = () => {
 
     // ใช้ tf.tidy() เพื่อลด Memory Leak
     tf.tidy(() => {
-      const inputTensor = preprocessImage(canvas, [224, 224]); // สร้าง input tensor
-
-      // ใช้ model.execute() และให้ tf.tidy จัดการ memory ให้อัตโนมัติ
+      const inputTensor = preprocessImage(canvas, [224, 224]);
+    
       const predictionResult = model.execute(inputTensor);
+    
+      const prediction = predictionResult.dataSync();  // Extract data
+    
+      const class_labels = ["3d", "digital", "live", "papercut", "print"];
 
-      prediction = predictionResult.dataSync()[0]; // ดึงค่าออกมาเป็น JS array
-      // setConfidence(prediction)
-      // if (prediction < 0.9) {
+    
+      // Initialize an empty array for predictionWithIndex
+      const predictionWithIndex = [];
 
-      //   setRealFrames((prev) => prev + 1);
-      //   console.log(realFrames)
-      // }
+      // Manually populate the predictionWithIndex array by iterating over prediction values
+      for (let i = 0; i < prediction.length; i++) {
+        const value = prediction[i];
+        const label = class_labels[i];
+        
+        // Push the object into the predictionWithIndex array
+        predictionWithIndex.push({ value, label });
+      }
+    
+      predictionWithIndex.sort((a, b) => b.value - a.value);
+
+      let result = []
+    
+      predictionWithIndex.forEach((item, index) => {
+        result.push(`${index+1}:${item.label} `);
+      });
+
+      setConfidence(result)
+      
     });
+    
+    
     // ลบ canvas หลังใช้งาน
     canvas.remove();
-    return prediction <= "0.7"
+    // return prediction <= "0.7"
+  };
+
+  const calculateHeadTurnPercentage = (depthLeft, depthRight) => {
+    const maxDepth = 0.2; // ค่าสูงสุดที่คาดว่าจะเป็นมุมที่หัน 90 องศา
+    const percentage = Math.abs(depthLeft - depthRight) / maxDepth * 100;
+    return Math.min(percentage, 100); // ค่าต้องไม่เกิน 100%
   };
 
 
@@ -572,8 +630,8 @@ const FaceScan = () => {
       {/* <h1 className="text-3xl font-bold underline text-center sm:text-xl">{liveness}</h1> */}
       {/* Webcam Detection */}
       {/* <p>{Number(depth1).toFixed(4)}</p>
-      <p>{Number(depth2).toFixed(4)}</p>
-      <p>{confidence}</p> */}
+      <p>{Number(depth2).toFixed(4)}</p> */}
+      <p>{confidence}</p>
       <div className="flex flex-col justify-center items-center mb-4">
         <div>
           <img
