@@ -50,8 +50,8 @@ const ClassCard = ({ classObject }) => {
             <div className="flex flex-col gap-1">
                 <div className="flex justify-between">
                     <p className="text-sm text-gray-600">CLASS</p>
-                    <p className={`text-sm uppercase ${isActive ? 'text-green-600' : 'text-red-600'}`}>
-                        {isActive ? "ACTIVE" : "INACTIVE"}
+                    <p className={`text-sm uppercase ${classObject.schedule === "9:00" ? 'text-green-600' : 'text-red-600'}`}>
+                        {classObject.schedule === "9:00" ? "ACTIVE" : "INACTIVE"}
                     </p>
                 </div>
                 <div className="flex justify-between items-center gap-4">
