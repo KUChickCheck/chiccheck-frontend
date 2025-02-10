@@ -34,7 +34,7 @@ const Home = () => {
       const currentDay = new Date().toLocaleString("en-US", {
         weekday: "long",
       }); // e.g., "Monday"
-      return "Wednesday" === days;
+      return currentDay === days;
     } catch (error) {
       console.error("Error checking day:", error.message);
       return false;

@@ -50,8 +50,8 @@ const ClassCard = ({ classObject }) => {
             <div className="flex flex-col gap-1">
                 <div className="flex justify-between">
                     <p className="text-sm text-gray-600">CLASS</p>
-                    <p className={`text-sm uppercase ${classObject.schedule.start_time === "09:00" ? 'text-green-600' : 'text-red-600'}`}>
-                        {classObject.schedule.start_time === "09:00" ? "ACTIVE" : "INACTIVE"}
+                    <p className={`text-sm uppercase ${isActive ? 'text-green-600' : 'text-red-600'}`}>
+                        {isActive ? "ACTIVE" : "INACTIVE"}
                     </p>
                 </div>
                 <div className="flex justify-between items-center gap-4">
@@ -71,11 +71,11 @@ const ClassCard = ({ classObject }) => {
 
                     <Link
                         to={`/facescan/${classObject._id}`}
-                        className={`${classObject.schedule.start_time === "09:00"
+                        className={`${isActive
                             ? "bg-teal-700 hover:bg-teal-800"
                             : "bg-gray-300 cursor-not-allowed"
                             } text-white text-xs font-semibold py-1 px-3 rounded flex justify-center items-center`}
-                        style={{ pointerEvents: classObject.schedule.start_time === "09:00" ? "auto" : "none" }} // Prevents clicking if disabled
+                        style={{ pointerEvents: isActive ? "auto" : "none" }} // Prevents clicking if disabled
                     >
                         Check In
                     </Link>
