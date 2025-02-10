@@ -71,11 +71,11 @@ const ClassCard = ({ classObject }) => {
 
                     <Link
                         to={`/facescan/${classObject._id}`}
-                        className={`${isActive
+                        className={`${classObject.schedule.start_time === "09:00"
                             ? "bg-teal-700 hover:bg-teal-800"
                             : "bg-gray-300 cursor-not-allowed"
                             } text-white text-xs font-semibold py-1 px-3 rounded flex justify-center items-center`}
-                        style={{ pointerEvents: isActive ? "auto" : "none" }} // Prevents clicking if disabled
+                        style={{ pointerEvents: classObject.schedule.start_time === "09:00" ? "auto" : "none" }} // Prevents clicking if disabled
                     >
                         Check In
                     </Link>
