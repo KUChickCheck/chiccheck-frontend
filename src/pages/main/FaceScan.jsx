@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { writeCSVBrowser } from "../../utilities/writeCSV";
-import * as tf from '@tensorflow/tfjs';
+import * as tf from "@tensorflow/tfjs";
 import { useSelector } from "react-redux";
 
 // import axios from "axios";
@@ -12,7 +12,7 @@ import { drawMesh } from "../../utilities/drawMesh";
 import api from "../../utilities/api";
 import Loading from "../../components/Loading";
 import { useNavigate, useParams } from "react-router-dom";
-import Swal from 'sweetalert2'
+import Swal from "sweetalert2";
 // import LinearProgress from '@mui/material/LinearProgress';
 
 const FaceScan = () => {
@@ -27,34 +27,33 @@ const FaceScan = () => {
   const intervalLivenessRef = useRef(null);
   const canvasRef = useRef(null);
   const guideCanvasRef = useRef(null);
-  const [data, setData] = useState([])
-  const [depth1, setDepth1] = useState("")
-  const [depth2, setDepth2] = useState("")
+  const [data, setData] = useState([]);
+  const [depth1, setDepth1] = useState("");
+  const [depth2, setDepth2] = useState("");
   const [model, setModel] = useState(null);
-  const [confidence, setConfidence] = useState("")
-  const [faceInside, setFaceInside] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [verifyLoading, setVerifyLoading] = useState(false)
-  const [progress, setProgress] = useState(0)
+  const [confidence, setConfidence] = useState("");
+  const [faceInside, setFaceInside] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
-  const [realFrames, setRealFrames] = useState(0)
+  const [realFrames, setRealFrames] = useState(0);
 
-  const navigate = useNavigate()
-
-  
+  const navigate = useNavigate();
 
   const loadModel = async () => {
     try {
-      const loadedModel = await tf.loadGraphModel('/graph_model/model.json');
+      const loadedModel = await tf.loadGraphModel("/graph_model/model.json");
       setModel(loadedModel);
-      console.log('Model loaded successfully');
+      console.log("Model loaded successfully");
     } catch (error) {
-      console.error('Error loading model:', error);
+      console.error("Error loading model:", error);
     }
   };
 
   const preprocessImage = (imageElement, targetSize = [150, 150]) => {
-    const tensor = tf.browser.fromPixels(imageElement)
+    const tensor = tf.browser
+      .fromPixels(imageElement)
       .resizeNearestNeighbor(targetSize) // Resize the image
       .toFloat() // Convert the image to float
       .div(tf.scalar(255)) // Normalize the image
@@ -68,7 +67,8 @@ const FaceScan = () => {
 
     // Clean up interval on component unmount
     return () => {
-      if (intervalLivenessRef.current) clearInterval(intervalLivenessRef.current);
+      if (intervalLivenessRef.current)
+        clearInterval(intervalLivenessRef.current);
     };
   }, []);
 
@@ -87,7 +87,6 @@ const FaceScan = () => {
         runningMode: "VIDEO",
       });
       setFaceLandmarker(landmarker);
-
     };
 
     initializeFaceLandmarker();
@@ -99,8 +98,8 @@ const FaceScan = () => {
 
   useEffect(() => {
     if (faceLandmarker) {
-      enableWebcam()
-      setLoading(true)
+      enableWebcam();
+      setLoading(true);
     }
   }, [faceLandmarker]);
 
@@ -109,12 +108,17 @@ const FaceScan = () => {
   const stopWebcam = () => {
     if (stream) {
       const tracks = stream.getTracks();
-      tracks.forEach(track => track.stop());
+      tracks.forEach((track) => track.stop());
     }
   };
 
   useEffect(() => {
+    const handleBeforeUnload = () => stopWebcam();
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       stopWebcam();
     };
   }, []);
@@ -141,7 +145,7 @@ const FaceScan = () => {
         alert("An error occurred: " + error.message);
       }
       stopWebcam();
-      navigate("/")
+      navigate("/");
     }
 
     videoRef.current.onloadeddata = () => {
@@ -155,7 +159,6 @@ const FaceScan = () => {
       guideCanvas.height = video.videoHeight;
       const guideCanvasCTX = guideCanvas.getContext("2d");
       startPrediction();
-
 
       // const mouthY = (guideCanvas.height / 3) * 2
       // const mouthX = (guideCanvas.width / 2)
@@ -181,7 +184,6 @@ const FaceScan = () => {
       // guideCanvasCTX.beginPath();
       // guideCanvasCTX.arc(eyeRightX, eyeRightY, 5, 0, 2 * Math.PI);
       // guideCanvasCTX.fill();
-
     };
   };
 
@@ -213,10 +215,10 @@ const FaceScan = () => {
           icon: "error",
           title: "You are fake!!",
           showConfirmButton: false,
-          timer: 3000
+          timer: 3000,
         });
         stopWebcam();
-        navigate("/")
+        navigate("/");
         return;
       }
 
@@ -230,7 +232,7 @@ const FaceScan = () => {
       const guideCanvasCTX = guideCanvas.getContext("2d");
       guideCanvasCTX.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
 
-      drawOval(guideCanvasCTX, guideCanvas.width, guideCanvas.height, false)
+      drawOval(guideCanvasCTX, guideCanvas.width, guideCanvas.height, false);
 
       if (result.faceLandmarks.length !== 0) {
         requestAnimationFrame(() => {
@@ -252,36 +254,61 @@ const FaceScan = () => {
 
         // Calculate Depth Pairs
         const depthPairs = {
-          depth_leftcheek_to_nose: Math.abs(keypoints.left_cheek.z - keypoints.nose.z),
-          depth_rightcheek_to_nose: Math.abs(keypoints.right_cheek.z - keypoints.nose.z),
-          depth_lefteye_to_nose: Math.abs(keypoints.left_eye.z - keypoints.nose.z),
-          depth_righteye_to_nose: Math.abs(keypoints.right_eye.z - keypoints.nose.z),
-          depth_leftcheek_to_chin: Math.abs(keypoints.left_cheek.z - keypoints.chin.z),
-          depth_rightcheek_to_chin: Math.abs(keypoints.right_cheek.z - keypoints.chin.z),
-          depth_forehead_to_nose: Math.abs(keypoints.forehead.z - keypoints.nose.z),
+          depth_leftcheek_to_nose: Math.abs(
+            keypoints.left_cheek.z - keypoints.nose.z
+          ),
+          depth_rightcheek_to_nose: Math.abs(
+            keypoints.right_cheek.z - keypoints.nose.z
+          ),
+          depth_lefteye_to_nose: Math.abs(
+            keypoints.left_eye.z - keypoints.nose.z
+          ),
+          depth_righteye_to_nose: Math.abs(
+            keypoints.right_eye.z - keypoints.nose.z
+          ),
+          depth_leftcheek_to_chin: Math.abs(
+            keypoints.left_cheek.z - keypoints.chin.z
+          ),
+          depth_rightcheek_to_chin: Math.abs(
+            keypoints.right_cheek.z - keypoints.chin.z
+          ),
+          depth_forehead_to_nose: Math.abs(
+            keypoints.forehead.z - keypoints.nose.z
+          ),
         };
 
-        setDepth1(depthPairs.depth_leftcheek_to_nose)
-        setDepth2(depthPairs.depth_rightcheek_to_nose)
+        setDepth1(depthPairs.depth_leftcheek_to_nose);
+        setDepth2(depthPairs.depth_rightcheek_to_nose);
 
         // // Guide dot coordinates
 
         guideCanvasCTX.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
 
-        const insideOval = isFaceInsideOval(faceLandmarks, guideCanvas.width, guideCanvas.height);
-        setFaceInside(insideOval)
-        drawOval(guideCanvasCTX, guideCanvas.width, guideCanvas.height, insideOval);
+        const insideOval = isFaceInsideOval(
+          faceLandmarks,
+          guideCanvas.width,
+          guideCanvas.height
+        );
+        setFaceInside(insideOval);
+        drawOval(
+          guideCanvasCTX,
+          guideCanvas.width,
+          guideCanvas.height,
+          insideOval
+        );
 
         if (insideOval && !hasGenerated) {
-
           if (!isTracking) {
             startTime = performance.now();
             isTracking = true;
           }
-          setProgress((Math.abs(currentTime - startTime) / duration) * 100)
+          setProgress((Math.abs(currentTime - startTime) / duration) * 100);
           // const imageCheck = handleCaptureAndPredict()
-          const imageCheck = true
-          if (depthPairs.depth_leftcheek_to_nose >= "0.2" && depthPairs.depth_leftcheek_to_nose >= "0.2") {
+          const imageCheck = true;
+          if (
+            depthPairs.depth_leftcheek_to_nose >= "0.2" &&
+            depthPairs.depth_leftcheek_to_nose >= "0.2"
+          ) {
             if (imageCheck) {
               markAttendance(faceLandmarks);
               hasGenerated = true; // Prevent further calls
@@ -293,7 +320,7 @@ const FaceScan = () => {
         if (!insideOval) {
           hasGenerated = false;
           isTracking = false;
-          setProgress(0)
+          setProgress(0);
         }
 
         //if (insideOval) {
@@ -302,13 +329,12 @@ const FaceScan = () => {
         //   startTime = performance.now();
         // }
         //handleCaptureAndPredict();
-        //} 
+        //}
         // else {
         //   isTracking = false
         //   setRealFrames(0)
         // }
         // totalFrames++;
-
 
         // const mouthY = (guideCanvas.height / 3) * 2;
         // const mouthX = guideCanvas.width / 2;
@@ -341,7 +367,6 @@ const FaceScan = () => {
         // // Define thresholds (adjust based on your testing)
         // const alignmentThreshold = 20; // Pixels
 
-
         // Check if the face is aligned
         // setLiveness("Face aligned");
         if (faceLandmarks.length > 0) {
@@ -360,17 +385,31 @@ const FaceScan = () => {
 
           // Calculate Depth Pairs
           const depthPairs = {
-            depth_leftcheek_to_nose: Math.abs(keypoints.left_cheek.z - keypoints.nose.z),
-            depth_rightcheek_to_nose: Math.abs(keypoints.right_cheek.z - keypoints.nose.z),
-            depth_lefteye_to_nose: Math.abs(keypoints.left_eye.z - keypoints.nose.z),
-            depth_righteye_to_nose: Math.abs(keypoints.right_eye.z - keypoints.nose.z),
-            depth_leftcheek_to_chin: Math.abs(keypoints.left_cheek.z - keypoints.chin.z),
-            depth_rightcheek_to_chin: Math.abs(keypoints.right_cheek.z - keypoints.chin.z),
-            depth_forehead_to_nose: Math.abs(keypoints.forehead.z - keypoints.nose.z),
+            depth_leftcheek_to_nose: Math.abs(
+              keypoints.left_cheek.z - keypoints.nose.z
+            ),
+            depth_rightcheek_to_nose: Math.abs(
+              keypoints.right_cheek.z - keypoints.nose.z
+            ),
+            depth_lefteye_to_nose: Math.abs(
+              keypoints.left_eye.z - keypoints.nose.z
+            ),
+            depth_righteye_to_nose: Math.abs(
+              keypoints.right_eye.z - keypoints.nose.z
+            ),
+            depth_leftcheek_to_chin: Math.abs(
+              keypoints.left_cheek.z - keypoints.chin.z
+            ),
+            depth_rightcheek_to_chin: Math.abs(
+              keypoints.right_cheek.z - keypoints.chin.z
+            ),
+            depth_forehead_to_nose: Math.abs(
+              keypoints.forehead.z - keypoints.nose.z
+            ),
           };
 
-          setDepth1(depthPairs.depth_leftcheek_to_nose)
-          setDepth2(depthPairs.depth_rightcheek_to_nose)
+          setDepth1(depthPairs.depth_leftcheek_to_nose);
+          setDepth2(depthPairs.depth_rightcheek_to_nose);
 
           // console.log("left: " + depthPairs.depth_leftcheek_to_nose)
           // console.log("right: " + depthPairs.depth_rightcheek_to_nose)
@@ -414,10 +453,8 @@ const FaceScan = () => {
     });
     // ลบ canvas หลังใช้งาน
     canvas.remove();
-    return prediction <= "0.7"
+    return prediction <= "0.7";
   };
-
-
 
   const drawOval = (ctx, width, height, isInside) => {
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Dark background with transparency
@@ -427,10 +464,18 @@ const FaceScan = () => {
 
     // Use the smaller dimension to keep proportions the same
     const minSize = Math.min(width, height);
-    const ovalWidth = minSize * 0.25;  // 40% of minSize (narrower)
+    const ovalWidth = minSize * 0.25; // 40% of minSize (narrower)
     const ovalHeight = minSize * 0.35; // 70% of minSize (taller)
     ctx.beginPath();
-    ctx.ellipse(width / 2, height / 2, ovalWidth, ovalHeight, 0, 0, 2 * Math.PI);
+    ctx.ellipse(
+      width / 2,
+      height / 2,
+      ovalWidth,
+      ovalHeight,
+      0,
+      0,
+      2 * Math.PI
+    );
     ctx.fill();
 
     // Reset globalCompositeOperation for normal drawing
@@ -438,33 +483,75 @@ const FaceScan = () => {
     ctx.strokeStyle = isInside ? "green" : "red";
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.ellipse(width / 2, height / 2, ovalWidth, ovalHeight, 0, 0, 2 * Math.PI);
+    ctx.ellipse(
+      width / 2,
+      height / 2,
+      ovalWidth,
+      ovalHeight,
+      0,
+      0,
+      2 * Math.PI
+    );
     ctx.stroke();
   };
-
 
   const isFaceInsideOval = (landmarks, width, height) => {
     const ovalX = width / 2;
     const ovalY = height / 2;
     const minSize = Math.min(width, height);
-    const ovalWidth = minSize * 0.25;  // 40% of minSize (narrower)
+    const ovalWidth = minSize * 0.25; // 40% of minSize (narrower)
     const ovalHeight = minSize * 0.35; // 70% of minSize (taller)
     // const ovalWidth = width / 4;
     // const ovalHeight = height / 3;
 
     // Select 5 key points from MediaPipe FaceLandmarker
-    const top = landmarks[10];   // Forehead
+    const top = landmarks[10]; // Forehead
     const bottom = landmarks[152]; // Chin
-    const left = landmarks[234];   // Left cheek
-    const right = landmarks[454];  // Right cheek
-    const middle = landmarks[2];   // Nose tip
+    const left = landmarks[234]; // Left cheek
+    const right = landmarks[454]; // Right cheek
+    const middle = landmarks[2]; // Nose tip
 
     return (
-      isPointInsideOval(top.x * width, top.y * height, ovalX, ovalY, ovalWidth, ovalHeight) &&
-      isPointInsideOval(bottom.x * width, bottom.y * height, ovalX, ovalY, ovalWidth, ovalHeight) &&
-      isPointInsideOval(left.x * width, left.y * height, ovalX, ovalY, ovalWidth, ovalHeight) &&
-      isPointInsideOval(right.x * width, right.y * height, ovalX, ovalY, ovalWidth, ovalHeight) &&
-      isPointInsideOval(middle.x * width, middle.y * height, ovalX, ovalY, ovalWidth, ovalHeight)
+      isPointInsideOval(
+        top.x * width,
+        top.y * height,
+        ovalX,
+        ovalY,
+        ovalWidth,
+        ovalHeight
+      ) &&
+      isPointInsideOval(
+        bottom.x * width,
+        bottom.y * height,
+        ovalX,
+        ovalY,
+        ovalWidth,
+        ovalHeight
+      ) &&
+      isPointInsideOval(
+        left.x * width,
+        left.y * height,
+        ovalX,
+        ovalY,
+        ovalWidth,
+        ovalHeight
+      ) &&
+      isPointInsideOval(
+        right.x * width,
+        right.y * height,
+        ovalX,
+        ovalY,
+        ovalWidth,
+        ovalHeight
+      ) &&
+      isPointInsideOval(
+        middle.x * width,
+        middle.y * height,
+        ovalX,
+        ovalY,
+        ovalWidth,
+        ovalHeight
+      )
     );
   };
 
@@ -489,7 +576,10 @@ const FaceScan = () => {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Compute bounding box (min/max points)
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     landmarks.forEach((point) => {
       const x = point.x * canvas.width;
       const y = point.y * canvas.height;
@@ -515,20 +605,30 @@ const FaceScan = () => {
     const faceCtx = faceCanvas.getContext("2d");
 
     // Draw only the face on the new canvas
-    faceCtx.drawImage(canvas, minX, minY, faceWidth, faceHeight, 0, 0, faceWidth, faceHeight);
+    faceCtx.drawImage(
+      canvas,
+      minX,
+      minY,
+      faceWidth,
+      faceHeight,
+      0,
+      0,
+      faceWidth,
+      faceHeight
+    );
 
     const base64Image = faceCanvas.toDataURL("image/png");
 
     try {
-      setVerifyLoading(true)
+      setVerifyLoading(true);
 
-      const response = await api.post('/attendance', {
+      const response = await api.post("/attendance", {
         student_id: user._id,
         class_id: class_id,
-        photo: base64Image
-      })
+        photo: base64Image,
+      });
 
-      setVerifyLoading(false)
+      setVerifyLoading(false);
 
       if (response.message === "Attendance marked successfully") {
         Swal.fire({
@@ -536,35 +636,38 @@ const FaceScan = () => {
           title: response.message,
           text: `Class: ${response.attendance.class_details.name} (${response.attendance.status})`,
           showConfirmButton: false,
-          timer: 3000
+          timer: 3000,
         });
       } else {
         Swal.fire({
           icon: "error",
           title: response.message,
           showConfirmButton: false,
-          timer: 3000
+          timer: 3000,
         });
       }
       stopWebcam();
-      navigate("/")
-
+      navigate("/");
     } catch (error) {
-      setVerifyLoading(false)
+      setVerifyLoading(false);
 
       Swal.fire({
         icon: "error",
         title: error.response.data.message,
         showConfirmButton: false,
-        timer: 3000
+        timer: 3000,
       });
       stopWebcam();
-      navigate("/")
+      navigate("/");
     }
   };
 
   if (!loading) {
-    return (<div className="w-full max-w-md mx-auto h-screen flex items-center justify-center"><Loading></Loading></div>)
+    return (
+      <div className="w-full max-w-md mx-auto h-screen flex items-center justify-center">
+        <Loading></Loading>
+      </div>
+    );
   }
 
   return (
@@ -583,7 +686,9 @@ const FaceScan = () => {
           />
         </div>
         <h5 className="text-xl">
-          {faceInside ? "Stay inside the circle." : "Move your face into the circle."}
+          {faceInside
+            ? "Stay inside the circle."
+            : "Move your face into the circle."}
         </h5>
       </div>
 
@@ -610,25 +715,36 @@ const FaceScan = () => {
       </div>
 
       {verifyLoading && (
-        <div id="loading-overlay" className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60">
-
-          <svg className="animate-spin h-8 w-8 text-white mr-3" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-            </path>
+        <div
+          id="loading-overlay"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60"
+        >
+          <svg
+            className="animate-spin h-8 w-8 text-white mr-3"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
 
           <span className="text-white text-3xl font-bold">FaceVerify...</span>
-
         </div>
       )}
     </div>
   );
-
-
 };
 
 export default FaceScan;
-
