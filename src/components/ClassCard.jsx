@@ -81,9 +81,9 @@ const ClassCard = ({ classObject }) => {
       {/* Bottom Section */}
       <div className="flex justify-between items-end">
         <div className="flex gap-1">
-          {/* {classObject.teachers.map((teacher) => (
-                        <p className="text-sm text-gray-600">{teacher.name}, </p>
-                    ))} */}
+          {classObject.teachers.map((teacher) => (
+            <p className="text-sm text-gray-600">{teacher.name}, </p>
+          ))}
         </div>
         <div className="flex gap-2">
           <Link

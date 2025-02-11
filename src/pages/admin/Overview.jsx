@@ -2,10 +2,10 @@ import React from 'react'
 import api from '../../utilities/api'
 import { useEffect, useState } from 'react'
 import { useSelector } from "react-redux";
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from "dayjs";
 
 const Overview = () => {
   const { user, token } = useSelector((state) => state.auth);
@@ -73,7 +73,7 @@ const Overview = () => {
 
   return (
     <div>
-      <div className='grid grid-cols-3 items-center gap-4 mb-5'>
+      <div className='flex items-center gap-4 mb-5'>
 
         <div className="select-wrapper">
           <select
@@ -92,11 +92,14 @@ const Overview = () => {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <div className="flex justify-center items-center">
             <DatePicker
-              label="Date of Class"
+              // label="Date of Class"
               value={selectedDate}
               onChange={(newValue) => setSelectedDate(newValue)}
               slotProps={{ textField: { size: "small" } }}
-              shouldDisableDate={disableNonMatchingDays}
+              shouldDisableDate={(date) =>
+                date.isAfter(dayjs()) || disableNonMatchingDays(date)
+              }
+              disabled={!selectedClass} // Disable if no class is selected
             />
           </div>
         </LocalizationProvider>
