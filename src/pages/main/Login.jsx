@@ -18,7 +18,6 @@ const Login = () => {
       try {
         const token = Cookies.get("token") ? Cookies.get("token") : null;
         if (!token) return;
-        setLoading(true)
         const response = await api.post(
           "/auth/verify-token",
           { role: "student" }, // You can send the role as part of the request body
@@ -29,13 +28,10 @@ const Login = () => {
           }
         );
 
-        setLoading(false)
-
         if (response.valid) {
           navigate("/");
         }
       } catch (error) {
-        setLoading(false)
         console.error("Token verification failed:", error);
       }
     };
@@ -51,15 +47,18 @@ const Login = () => {
     }
 
     try {
+      setLoading(true)
       const response = await dispatch(
         loginUser({ username, password }, "student")
       );
+      setLoading(false)
       if (response.type === "LOGIN_SUCCESS") {
         navigate("/");
       } else {
         setError("Invalid username or password.");
       }
     } catch (error) {
+      setLoading(false)
       setError("Login failed. Please try again.");
     }
   };
@@ -92,7 +91,7 @@ const Login = () => {
             ></path>
           </svg>
 
-          <span className="text-white text-3xl font-bold">Loading...</span>
+          {/* <span className="text-white text-2xl font-bold">Loading...</span> */}
         </div>
       )}
       <div className="w-full max-w-md">

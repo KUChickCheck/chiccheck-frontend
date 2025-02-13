@@ -64,7 +64,7 @@ const IndividualReport = () => {
             <div>
                 <div className="select-wrapper">
                     <select
-                        className="text-primary border border-gray-300 rounded-md py-2 px-4 w-full font-bold text-xl"
+                        className="text-primary bg-white border border-gray-300 rounded-md py-2 px-4 w-full font-bold text-xl"
                         onChange={handleChange} // Set the event handler
                         value={selectedClass} // Bind the selected value
                     >
