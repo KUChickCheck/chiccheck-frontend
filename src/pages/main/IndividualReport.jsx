@@ -9,22 +9,22 @@ const IndividualReport = () => {
     const { user } = useSelector((state) => state.auth);
     const [classes, setClasses] = useState([])
     const [report, setReport] = useState([
-        { icon: "/report.png", status: "Total Class", amount: 0 },
-        { icon: "/report.png", status: "On Time", amount: 0 },
-        { icon: "/report.png", status: "Late", amount: 0 },
-        { icon: "/report.png", status: "Absent", amount: 0 },
+        { icon: "/calendar-days.svg", status: "Total Class", amount: 0 },
+        { icon: "/circle-check-big.svg", status: "On Time", amount: 0 },
+        { icon: "/clock-alert.svg", status: "Late", amount: 0 },
+        { icon: "/circle-x.svg", status: "Absent", amount: 0 },
     ])
-
+    
     const [selectedClass, setSelectedClass] = useState('');
 
     const handleChange = async (e) => {
         const class_id = e.target.value
         if (class_id === "none" || !class_id) {
             const items = [
-                { icon: "/report.png", status: "Total Class", amount: 0 },
-                { icon: "/report.png", status: "On Time", amount: 0 },
-                { icon: "/report.png", status: "Late", amount: 0 },
-                { icon: "/report.png", status: "Absent", amount: 0 },
+                { icon: "/calendar-days.svg", status: "Total Class", amount: 0 },
+                { icon: "/circle-check-big.svg", status: "On Time", amount: 0 },
+                { icon: "/clock-alert.svg", status: "Late", amount: 0 },
+                { icon: "/circle-x.svg", status: "Absent", amount: 0 },
             ];
             setReport(items)
             return;
@@ -34,10 +34,10 @@ const IndividualReport = () => {
         try {
             const response = await api.get(`/attendance/report/${user._id}/${class_id}`)
             const items = [
-                { icon: "/report.png", status: "Total Class", amount: response.report.total_classes },
-                { icon: "/report.png", status: "On Time", amount: response.report.ontime },
-                { icon: "/report.png", status: "Late", amount: response.report.late },
-                { icon: "/report.png", status: "Absent", amount: response.report.absent },
+                { icon: "/calendar-days.svg", status: "Total Class", amount: response.report.total_classes },
+                { icon: "/circle-check-big.svg", status: "On Time", amount: response.report.ontime },
+                { icon: "/clock-alert.svg", status: "Late", amount: response.report.late },
+                { icon: "/circle-x.svg", status: "Absent", amount: response.report.absent },
             ];
             setReport(items)
         } catch (e) {
