@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../../utilities/api';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../../utilities/api";
 import { useDispatch } from "react-redux";
-import { loginUser } from '../../store/actions/authActions';
+import { loginUser } from "../../store/actions/authActions";
 import Cookies from "js-cookie";
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     const verifyToken = async () => {
       try {
         const token = Cookies.get("token") ? Cookies.get("token") : null;
         if (!token) return;
+        setLoading(true)
         const response = await api.post(
           "/auth/verify-token",
           { role: "student" }, // You can send the role as part of the request body
@@ -26,29 +28,32 @@ const Login = () => {
             },
           }
         );
-        
 
-        console.log(response)
+        setLoading(false)
+
         if (response.valid) {
-          navigate('/')
+          navigate("/");
         }
       } catch (error) {
-        console.error('Token verification failed:', error);
+        setLoading(false)
+        console.error("Token verification failed:", error);
       }
     };
-    verifyToken()
+    verifyToken();
   }, [navigate]);
 
   const login = async (e) => {
     e.preventDefault();
-  
+
     if (!username || !password) {
       setError("Please enter both username and password.");
       return;
     }
-  
+
     try {
-      const response = await dispatch(loginUser({ username, password }, "student"));
+      const response = await dispatch(
+        loginUser({ username, password }, "student")
+      );
       if (response.type === "LOGIN_SUCCESS") {
         navigate("/");
       } else {
@@ -58,17 +63,42 @@ const Login = () => {
       setError("Login failed. Please try again.");
     }
   };
-  
 
   return (
     <div className="container mx-auto px-4 flex items-center justify-center h-screen">
-      <div className="w-full max-w-md">
-        <div className='flex justify-center items-center mb-6 gap-1'>
-          <img src="/chiccheck.svg" alt="" width={32} />
-          <h1 className="text-center text-3xl font-bold">
-            ChicCheck
-          </h1>
+      {loading && (
+        <div
+          id="loading-overlay"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60"
+        >
+          <svg
+            className="animate-spin h-8 w-8 text-white mr-3"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
 
+          <span className="text-white text-3xl font-bold">Loading...</span>
+        </div>
+      )}
+      <div className="w-full max-w-md">
+        <div className="flex justify-center items-center mb-6 gap-1">
+          <img src="/chiccheck.svg" alt="" width={32} />
+          <h1 className="text-center text-3xl font-bold">ChicCheck</h1>
         </div>
         <form onSubmit={login} className="space-y-4">
           <div>
@@ -98,11 +128,7 @@ const Login = () => {
             Login
           </button>
         </form>
-        {error && (
-          <div className="mt-4 text-red-600 text-center">
-            {error}
-          </div>
-        )}
+        {error && <div className="mt-4 text-red-600 text-center">{error}</div>}
       </div>
     </div>
   );
