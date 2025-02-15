@@ -37,7 +37,7 @@ const Overview = () => {
     // Find the selected class to get the schedule day
     const selectedClassData = classes.find(cls => cls._id === class_id);
     if (selectedClassData) {
-      setClassScheduleDay(selectedClassData.schedule.days);
+      setClassScheduleDay(selectedClassData.schedule);
     }
   }
 
@@ -50,20 +50,22 @@ const Overview = () => {
     }
   }
 
-    // Function to disable all dates except the selected schedule day
-    const disableNonMatchingDays = (date) => {
-      if (!classScheduleDay) return false; // Don't disable any date if no class is selected
-      const daysMap = {
-        Sunday: 0,
-        Monday: 1,
-        Tuesday: 2,
-        Wednesday: 3,
-        Thursday: 4,
-        Friday: 5,
-        Saturday: 6,
-      };
-      return date.day() !== daysMap[classScheduleDay];
+  // Function to disable all dates except the selected schedule days
+  const disableNonMatchingDays = (date) => {
+    if (!classScheduleDay || classScheduleDay.length === 0) return false; // Don't disable if no class is selected
+
+    const daysMap = {
+      Sunday: 0,
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6,
     };
+
+    return !classScheduleDay.some(schedule => date.day() === daysMap[schedule.days]);
+  };
 
   useEffect(() => {
     if (selectedClass && selectedDate) {
