@@ -102,7 +102,7 @@ const FaceScan = () => {
         if (headDirection === requiredDirections[currentIndex]) {
           if (currentIndex < requiredDirections.length - 1) {
             setCurrentIndex((prev) => prev + 1);
-            handleCaptureAndPredict()
+            // handleCaptureAndPredict()
           } else {
             markAttendance(marks);
             setCurrentIndex(0);
