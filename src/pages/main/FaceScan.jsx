@@ -14,8 +14,7 @@ import {
   ScanFace
 } from "lucide-react";
 
-
-// import axios from "axios";
+import axios from "axios";
 import {
   FaceLandmarker,
   FilesetResolver,
@@ -85,6 +84,9 @@ const FaceScan = () => {
 
   const [marks ,setMarks] = useState([])
 
+  const [predictionResults, setPredictionResults] = useState([]);
+const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
+
   const streamRef = useRef(null); // Store stream in useRef
 
   const navigate = useNavigate();
@@ -102,9 +104,21 @@ const FaceScan = () => {
         if (headDirection === requiredDirections[currentIndex]) {
           if (currentIndex < requiredDirections.length - 1) {
             setCurrentIndex((prev) => prev + 1);
-            // handleCaptureAndPredict()
+            sendImageToPredictApi()
           } else {
-            markAttendance(marks);
+            if (isAttendanceMarked) {
+              // markAttendance(marks);
+              handleCaptureAndPredict()
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "You are fake!!",
+                showConfirmButton: false,
+                timer: 3000,
+              });
+              stopWebcam();
+              navigate("/");
+            }
             setCurrentIndex(0);
             setRequiredDirections(getRandomDirections());
           }
@@ -512,38 +526,107 @@ const stopWebcam = () => {
     }, 0);
   };
 
-  const handleCaptureAndPredict = () => {
-    if (!model || !videoRef.current) return;
-
+  const sendImageToPredictApi = async () => {
     const video = videoRef.current;
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-
+  
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    let prediction;
-
-    // ใช้ tf.tidy() เพื่อลด Memory Leak
-    tf.tidy(() => {
-      const inputTensor = preprocessImage(canvas, [224, 224]); // สร้าง input tensor
-
-      // ใช้ model.execute() และให้ tf.tidy จัดการ memory ให้อัตโนมัติ
-      const predictionResult = model.execute(inputTensor);
-
-      prediction = predictionResult.dataSync()[0]; // ดึงค่าออกมาเป็น JS array
-      console.log(prediction)
-      // setConfidence(prediction)
-      // if (prediction < 0.9) {
-
-      //   setRealFrames((prev) => prev + 1);
-      //   console.log(realFrames)
-      // }
-    });
-    // ลบ canvas หลังใช้งาน
+  
+    // Convert canvas to a blob (image format)
+    canvas.toBlob(async (blob) => {
+      const formData = new FormData();
+      formData.append("file", blob, "image.jpg");
+  
+      try {
+        const response = await axios.post("http://localhost:8000/predict/", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+  
+        console.log("Prediction Result:", response.data);
+        const isPredictionSuccessful = response.data.predicted_class === 2; // Assuming 2 is the successful class
+        setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
+  
+        // After every update, check if more than 50% predictions are successful
+        const successRate = predictionResults.filter((result) => result).length / predictionResults.length;
+        if (successRate > 0.5) {
+          setIsAttendanceMarked(true); // Set to true if success rate > 50%
+        } else {
+          setIsAttendanceMarked(false);
+        }
+      } catch (error) {
+        console.error("Error sending image to API:", error);
+      }
+    }, "image/jpeg");
+  
+    // Clean up canvas
     canvas.remove();
-    return prediction <= "0.7";
   };
+
+  const handleCaptureAndPredict = () => {
+    if (!model || !videoRef.current) return;
+  
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+  
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+    let prediction;
+  
+    // Use tf.tidy() to prevent memory leak
+    tf.tidy(() => {
+      const inputTensor = preprocessImage(canvas, [224, 224]);
+      
+      const predictionResult = model.execute(inputTensor);
+      
+      prediction = predictionResult.dataSync();  // Extract prediction values
+      
+      const class_labels = ["3d", "digital", "live", "papercut", "print"];
+      
+      // Initialize an array to store prediction with class labels
+      const predictionWithIndex = [];
+  
+      // Populate the predictionWithIndex array
+      for (let i = 0; i < prediction.length; i++) {
+        const value = prediction[i];
+        const label = class_labels[i];
+        predictionWithIndex.push({ value, label });
+      }
+      
+      // Sort the prediction array by value (highest first)
+      predictionWithIndex.sort((a, b) => b.value - a.value);
+  
+      // Get the class with the highest prediction value
+      const topPrediction = predictionWithIndex[0];
+  
+      // Assuming 'live' (index 2) is the successful class
+      const isPredictionSuccessful = topPrediction.label === "live";
+  
+      // Update prediction results array with success/failure
+      setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
+  
+      // Calculate success rate after each update
+      const successRate = predictionResults.filter((result) => result).length / predictionResults.length;
+  
+      // If more than 50% predictions are successful, mark attendance
+      if (successRate > 0.5) {
+        setIsAttendanceMarked(true); // Set to true if success rate > 50%
+      } else {
+        setIsAttendanceMarked(false); 
+      }
+    });
+  
+    // Clean up canvas
+    canvas.remove();
+  };
+
 
   const drawOval = (ctx, width, height, isInside) => {
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Dark background with transparency
