@@ -15,6 +15,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 // import LinearProgress from '@mui/material/LinearProgress';
 
+const directionsList = ["Left", "Right", "Up", "Down", "Up-Left", "Up-Right", "Down-Left", "Down-Right"];
+
+const getRandomDirections = () => {
+  let shuffled = [...directionsList].sort(() => Math.random() - 0.5); // Shuffle the array
+  let randomDirections = shuffled.slice(0, 4); // Get 4 random directions
+  randomDirections.push("Center"); // Add "Back to Center" to the end
+  return randomDirections;
+};
+
 const FaceScan = () => {
   const { user } = useSelector((state) => state.auth);
   const { class_id } = useParams();
@@ -39,7 +48,44 @@ const FaceScan = () => {
 
   const [realFrames, setRealFrames] = useState(0);
 
+  const [headDirection, setHeadDirection] = useState("Center");
+  const [requiredDirections, setRequiredDirections] = useState(getRandomDirections());
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHolding, setIsHolding] = useState(false);
+
+  const [marks ,setMarks] = useState([])
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Only start when the direction matches
+    if (!isHolding && headDirection === requiredDirections[currentIndex]) {
+      setIsHolding(true);
+      
+      const timeout = setTimeout(() => {
+        if (headDirection === requiredDirections[currentIndex]) {
+          if (currentIndex < requiredDirections.length - 1) {
+            setCurrentIndex(currentIndex + 1);
+          } else {
+            markAttendance(marks); // Call the function to mark attendance
+            setCurrentIndex(0);
+            setRequiredDirections(getRandomDirections());
+          }
+        }
+        setIsHolding(false); // Reset isHolding flag after timeout
+      }, 1000); // 1 second wait
+
+      return () => {
+        clearTimeout(timeout); // Cleanup timeout when direction changes or component unmounts
+      };
+    }
+
+    // If head direction changes, reset the waiting process
+    if (headDirection !== requiredDirections[currentIndex] && isHolding) {
+      setIsHolding(false); // Reset isHolding to allow for the new movement
+    }
+
+  }, [headDirection]);
 
   const loadModel = async () => {
     try {
@@ -210,17 +256,17 @@ const FaceScan = () => {
       //   return;
       // }
 
-      if (isTracking && currentTime - startTime > duration) {
-        Swal.fire({
-          icon: "error",
-          title: "You are fake!!",
-          showConfirmButton: false,
-          timer: 3000,
-        });
-        stopWebcam();
-        navigate("/");
-        return;
-      }
+      // if (isTracking && currentTime - startTime > duration) {
+      //   Swal.fire({
+      //     icon: "error",
+      //     title: "You are fake!!",
+      //     showConfirmButton: false,
+      //     timer: 3000,
+      //   });
+      //   stopWebcam();
+      //   navigate("/");
+      //   return;
+      // }
 
       const result = faceLandmarker.detectForVideo(video, currentTime);
 
@@ -240,6 +286,7 @@ const FaceScan = () => {
         });
 
         const faceLandmarks = result.faceLandmarks[0];
+        setMarks(faceLandmarks)
 
         // Suggested Keypoints
         const keypoints = {
@@ -297,9 +344,47 @@ const FaceScan = () => {
           insideOval
         );
 
+        const leftCheek = faceLandmarks[234];
+        const rightCheek = faceLandmarks[454];
+        const chin = faceLandmarks[152];
+        const forehead = faceLandmarks[10];
+        
+        // Calculate yaw (left-right head rotation) using Z-axis
+        const dz = rightCheek.z - leftCheek.z; // Depth difference
+        const dx = rightCheek.x - leftCheek.x; // Horizontal difference
+        const yaw = Math.atan2(dz, dx) * (180 / Math.PI); // Yaw angle in degrees
+        
+        // Calculate pitch (up-down head movement)
+        const dy_pitch = chin.y - forehead.y;
+        const dz_pitch = chin.z - forehead.z;
+        const pitch = Math.atan2(dz_pitch, dy_pitch) * (180 / Math.PI);
+        
+        let direction = "Center";
+        
+        // Determine head turning (yaw using Z-axis)
+        if (dz > 0.04) direction = "Left"; // Right cheek moves deeper (Z increases)
+        if (dz < -0.04) direction = "Right"; // Left cheek moves deeper (Z increases)
+        
+        // Determine head movement up/down
+        if (pitch > 10) direction = "Down";
+        if (pitch < -10) direction = "Up";
+        
+        // Handle combined movements
+        if (dz > 0.04 && pitch < -10) direction = "Up-Left";
+        if (dz < -0.04 && pitch < -10) direction = "Up-Right";
+        if (dz > 0.04 && pitch > 10) direction = "Down-Left";
+        if (dz < -0.04 && pitch > 10) direction = "Down-Right";
+        
+        // console.log("Yaw:", yaw);
+        // console.log("Pitch:", pitch);
+        // console.log("Direction:", direction);
+        
+        setHeadDirection(direction);
+        
+
         if (insideOval && !hasGenerated) {
           if (!isTracking) {
-            startTime = performance.now();
+            // startTime = performance.now();
             isTracking = true;
           }
           setProgress((Math.abs(currentTime - startTime) / duration) * 100);
@@ -310,7 +395,7 @@ const FaceScan = () => {
             depthPairs.depth_leftcheek_to_nose >= "0.2"
           ) {
             if (imageCheck) {
-              markAttendance(faceLandmarks);
+              // markAttendance(faceLandmarks);
               hasGenerated = true; // Prevent further calls
               return;
             }
@@ -677,6 +762,12 @@ const FaceScan = () => {
       {/* <p>{Number(depth1).toFixed(4)}</p>
       <p>{Number(depth2).toFixed(4)}</p>
       <p>{confidence}</p> */}
+    <div>
+      <h2>ทำตามลำดับที่กำหนด:</h2>
+      {/* <p>ท่าที่ต้องทำ: {requiredDirections.join(" → ")}</p> */}
+      <p>ตอนนี้ต้องทำ: <strong>{requiredDirections[currentIndex]}</strong></p>
+      <p>ท่าปัจจุบันของคุณ: <strong>{headDirection}</strong></p>
+    </div>
       <div className="flex flex-col justify-center items-center mb-4">
         <div>
           <img
