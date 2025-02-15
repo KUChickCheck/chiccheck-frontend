@@ -2,6 +2,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { writeCSVBrowser } from "../../utilities/writeCSV";
 import * as tf from "@tensorflow/tfjs";
 import { useSelector } from "react-redux";
+import { 
+  SquareArrowUp, 
+  SquareArrowDown, 
+  SquareArrowLeft, 
+  SquareArrowRight, 
+  SquareArrowUpLeft, 
+  SquareArrowUpRight, 
+  SquareArrowDownLeft, 
+  SquareArrowDownRight,
+  ScanFace
+} from "lucide-react";
+
 
 // import axios from "axios";
 import {
@@ -14,6 +26,24 @@ import Loading from "../../components/Loading";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 // import LinearProgress from '@mui/material/LinearProgress';
+
+// Map directions to Lucide icons
+const directionIcons = {
+  "Up": SquareArrowUp,
+  "Down": SquareArrowDown,
+  "Left": SquareArrowLeft,
+  "Right": SquareArrowRight,
+  "Up-Left": SquareArrowUpLeft,
+  "Up-Right": SquareArrowUpRight,
+  "Down-Left": SquareArrowDownLeft,
+  "Down-Right": SquareArrowDownRight,
+  "Center": ScanFace
+};
+
+const DirectionDisplay = ({ direction }) => {
+  const IconComponent = directionIcons[direction];
+  return IconComponent ? <IconComponent size={24} /> : null;
+};
 
 const directionsList = ["Left", "Right", "Up", "Down", "Up-Left", "Up-Right", "Down-Left", "Down-Right"];
 
@@ -55,35 +85,46 @@ const FaceScan = () => {
 
   const [marks ,setMarks] = useState([])
 
+  const streamRef = useRef(null); // Store stream in useRef
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Only start when the direction matches
     if (!isHolding && headDirection === requiredDirections[currentIndex]) {
       setIsHolding(true);
-      
+      setProgress(0);
+
+      let progressInterval = setInterval(() => {
+        setProgress((prev) => Math.min(prev + 5, 100)); // Increase by ~1.67 every 16.67ms (60 FPS)
+      }, 50);
+
       const timeout = setTimeout(() => {
         if (headDirection === requiredDirections[currentIndex]) {
           if (currentIndex < requiredDirections.length - 1) {
-            setCurrentIndex(currentIndex + 1);
+            setCurrentIndex((prev) => prev + 1);
+            handleCaptureAndPredict()
           } else {
-            markAttendance(marks); // Call the function to mark attendance
+            markAttendance(marks);
             setCurrentIndex(0);
             setRequiredDirections(getRandomDirections());
           }
         }
-        setIsHolding(false); // Reset isHolding flag after timeout
-      }, 1000); // 1 second wait
+        setIsHolding(false);
+        setProgress(0);
+        clearInterval(progressInterval);
+      }, 1000);
 
       return () => {
-        clearTimeout(timeout); // Cleanup timeout when direction changes or component unmounts
-        stopWebcam();
+        clearTimeout(timeout);
+        clearInterval(progressInterval);
+        setProgress(0);
       };
     }
 
-    // If head direction changes, reset the waiting process
-    if (headDirection !== requiredDirections[currentIndex] && isHolding) {
-      setIsHolding(false); // Reset isHolding to allow for the new movement
+    // Reset progress if the user moves before 500ms
+    if (isHolding && headDirection !== requiredDirections[currentIndex]) {
+      setIsHolding(false);
+      setProgress(0);
     }
 
   }, [headDirection]);
@@ -150,14 +191,15 @@ const FaceScan = () => {
     }
   }, [faceLandmarker]);
 
-  let stream = null;
 
-  const stopWebcam = () => {
-    if (stream) {
-      const tracks = stream.getTracks();
-      tracks.forEach((track) => track.stop());
-    }
-  };
+// Stop the webcam
+const stopWebcam = () => {
+  if (streamRef.current) {
+    const tracks = streamRef.current.getTracks();
+    tracks.forEach((track) => track.stop());
+    streamRef.current = null; // Reset the streamRef after stopping
+  }
+};
 
   useEffect(() => {
     const handleBeforeUnload = () => stopWebcam();
@@ -179,8 +221,9 @@ const FaceScan = () => {
 
     try {
       const constraints = { video: true };
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-      videoRef.current.srcObject = stream;
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream; // Store the stream in streamRef
+      videoRef.current.srcObject = stream; // Set the video source object
     } catch (error) {
       if (error.name === "NotAllowedError") {
         alert("Permission denied: Please allow webcam access.");
@@ -206,31 +249,6 @@ const FaceScan = () => {
       guideCanvas.height = video.videoHeight;
       const guideCanvasCTX = guideCanvas.getContext("2d");
       startPrediction();
-
-      // const mouthY = (guideCanvas.height / 3) * 2
-      // const mouthX = (guideCanvas.width / 2)
-
-      // const eyeLeftY = (guideCanvas.height / 2) - 20
-      // const eyeLeftX = (guideCanvas.width / 2) + 60
-
-      // const eyeRightY = (guideCanvas.height / 2) - 20
-      // const eyeRightX = (guideCanvas.width / 2) - 60
-
-      // guideCanvasCTX.fillStyle = "red";
-      // // Draw mouth guide
-      // guideCanvasCTX.beginPath();
-      // guideCanvasCTX.arc(mouthX, mouthY, 5, 0, 2 * Math.PI);
-      // guideCanvasCTX.fill();
-
-      // // Draw left eye guide
-      // guideCanvasCTX.beginPath();
-      // guideCanvasCTX.arc(eyeLeftX, eyeLeftY, 5, 0, 2 * Math.PI);
-      // guideCanvasCTX.fill();
-
-      // // Draw right eye guide
-      // guideCanvasCTX.beginPath();
-      // guideCanvasCTX.arc(eyeRightX, eyeRightY, 5, 0, 2 * Math.PI);
-      // guideCanvasCTX.fill();
     };
   };
 
@@ -342,7 +360,7 @@ const FaceScan = () => {
           guideCanvasCTX,
           guideCanvas.width,
           guideCanvas.height,
-          insideOval
+          insideOval,
         );
 
         const leftCheek = faceLandmarks[234];
@@ -384,29 +402,13 @@ const FaceScan = () => {
         
 
         if (insideOval && !hasGenerated) {
-          if (!isTracking) {
-            // startTime = performance.now();
-            isTracking = true;
-          }
-          setProgress((Math.abs(currentTime - startTime) / duration) * 100);
           // const imageCheck = handleCaptureAndPredict()
-          const imageCheck = true;
-          if (
-            depthPairs.depth_leftcheek_to_nose >= "0.2" &&
-            depthPairs.depth_leftcheek_to_nose >= "0.2"
-          ) {
-            if (imageCheck) {
-              // markAttendance(faceLandmarks);
-              hasGenerated = true; // Prevent further calls
-              return;
-            }
-          }
+          hasGenerated = true;
+
         }
 
         if (!insideOval) {
           hasGenerated = false;
-          isTracking = false;
-          setProgress(0);
         }
 
         //if (insideOval) {
@@ -530,6 +532,7 @@ const FaceScan = () => {
       const predictionResult = model.execute(inputTensor);
 
       prediction = predictionResult.dataSync()[0]; // ดึงค่าออกมาเป็น JS array
+      console.log(prediction)
       // setConfidence(prediction)
       // if (prediction < 0.9) {
 
@@ -764,13 +767,7 @@ const FaceScan = () => {
       {/* <p>{Number(depth1).toFixed(4)}</p>
       <p>{Number(depth2).toFixed(4)}</p>
       <p>{confidence}</p> */}
-    <div>
-      <h2>ทำตามลำดับที่กำหนด:</h2>
-      {/* <p>ท่าที่ต้องทำ: {requiredDirections.join(" → ")}</p> */}
-      <p>ตอนนี้ต้องทำ: <strong>{requiredDirections[currentIndex]}</strong></p>
-      <p>ท่าปัจจุบันของคุณ: <strong>{headDirection}</strong></p>
-    </div>
-      <div className="flex flex-col justify-center items-center mb-4">
+      <div className="flex flex-col justify-center items-center mb-1">
         <div>
           <img
             src={faceInside ? "/face-scan.gif" : "/face-frame.png"}
@@ -784,6 +781,21 @@ const FaceScan = () => {
             : "Move your face into the circle."}
         </h5>
       </div>
+    <div className="flex flex-col justify-center items-center mb-4 gap-3">
+      <h2>Move Your Head Following Below Direction</h2>
+      {/* <p>ท่าที่ต้องทำ: {requiredDirections.join(" → ")}</p> */}
+      <DirectionDisplay direction={requiredDirections[currentIndex]} />
+      
+      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+            
+        <div
+          className="h-full bg-primary transition-all duration-50"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <DirectionDisplay direction={headDirection} />
+    </div>
 
       <div
         id="liveView"
