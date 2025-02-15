@@ -2,14 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { writeCSVBrowser } from "../../utilities/writeCSV";
 import * as tf from "@tensorflow/tfjs";
 import { useSelector } from "react-redux";
-import { 
-  SquareArrowUp, 
-  SquareArrowDown, 
-  SquareArrowLeft, 
-  SquareArrowRight, 
-  SquareArrowUpLeft, 
-  SquareArrowUpRight, 
-  SquareArrowDownLeft, 
+import {
+  SquareArrowUp,
+  SquareArrowDown,
+  SquareArrowLeft,
+  SquareArrowRight,
+  SquareArrowUpLeft,
+  SquareArrowUpRight,
+  SquareArrowDownLeft,
   SquareArrowDownRight,
   ScanFace
 } from "lucide-react";
@@ -82,10 +82,10 @@ const FaceScan = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
 
-  const [marks ,setMarks] = useState([])
+  const [marks, setMarks] = useState([])
 
   const [predictionResults, setPredictionResults] = useState([]);
-const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
+  const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
 
   const streamRef = useRef(null); // Store stream in useRef
 
@@ -104,11 +104,11 @@ const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
         if (headDirection === requiredDirections[currentIndex]) {
           if (currentIndex < requiredDirections.length - 1) {
             setCurrentIndex((prev) => prev + 1);
-            sendImageToPredictApi()
+            // sendImageToPredictApi()
+            // handleCaptureAndPredict()
           } else {
-            if (isAttendanceMarked) {
-              // markAttendance(marks);
-              handleCaptureAndPredict()
+            if (true) {
+              markAttendance(marks);
             } else {
               Swal.fire({
                 icon: "error",
@@ -145,7 +145,7 @@ const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
 
   const loadModel = async () => {
     try {
-      const loadedModel = await tf.loadGraphModel("/graph_model/model.json");
+      const loadedModel = await tf.loadGraphModel("/liveness_model_graph/model.json");
       setModel(loadedModel);
       console.log("Model loaded successfully");
     } catch (error) {
@@ -206,14 +206,14 @@ const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
   }, [faceLandmarker]);
 
 
-// Stop the webcam
-const stopWebcam = () => {
-  if (streamRef.current) {
-    const tracks = streamRef.current.getTracks();
-    tracks.forEach((track) => track.stop());
-    streamRef.current = null; // Reset the streamRef after stopping
-  }
-};
+  // Stop the webcam
+  const stopWebcam = () => {
+    if (streamRef.current) {
+      const tracks = streamRef.current.getTracks();
+      tracks.forEach((track) => track.stop());
+      streamRef.current = null; // Reset the streamRef after stopping
+    }
+  };
 
   useEffect(() => {
     const handleBeforeUnload = () => stopWebcam();
@@ -261,7 +261,6 @@ const stopWebcam = () => {
       canvas.height = video.videoHeight;
       guideCanvas.width = video.videoWidth;
       guideCanvas.height = video.videoHeight;
-      const guideCanvasCTX = guideCanvas.getContext("2d");
       startPrediction();
     };
   };
@@ -272,34 +271,13 @@ const stopWebcam = () => {
     if (!faceLandmarker || !videoRef.current) return;
 
     let totalFrames = 0;
-    const duration = 3000; // 3 seconds
+    const duration = 3000;
     let startTime = null;
     let isTracking = false;
 
     intervalRef.current = setInterval(() => {
       const video = videoRef.current;
       const currentTime = performance.now();
-
-      // console.log(currentTime - startTime)
-      // if (isTracking && currentTime - startTime > duration) {
-      //   clearInterval(intervalRef.current);
-      //   const realPercentage = (realFrames / totalFrames) * 100;
-      //   console.log(realFrames)
-      //   setLiveness(realPercentage >= 20 ? "Live" : "Fake");
-      //   return;
-      // }
-
-      // if (isTracking && currentTime - startTime > duration) {
-      //   Swal.fire({
-      //     icon: "error",
-      //     title: "You are fake!!",
-      //     showConfirmButton: false,
-      //     timer: 3000,
-      //   });
-      //   stopWebcam();
-      //   navigate("/");
-      //   return;
-      // }
 
       const result = faceLandmarker.detectForVideo(video, currentTime);
 
@@ -332,34 +310,6 @@ const stopWebcam = () => {
           forehead: faceLandmarks[10],
         };
 
-        // Calculate Depth Pairs
-        const depthPairs = {
-          depth_leftcheek_to_nose: Math.abs(
-            keypoints.left_cheek.z - keypoints.nose.z
-          ),
-          depth_rightcheek_to_nose: Math.abs(
-            keypoints.right_cheek.z - keypoints.nose.z
-          ),
-          depth_lefteye_to_nose: Math.abs(
-            keypoints.left_eye.z - keypoints.nose.z
-          ),
-          depth_righteye_to_nose: Math.abs(
-            keypoints.right_eye.z - keypoints.nose.z
-          ),
-          depth_leftcheek_to_chin: Math.abs(
-            keypoints.left_cheek.z - keypoints.chin.z
-          ),
-          depth_rightcheek_to_chin: Math.abs(
-            keypoints.right_cheek.z - keypoints.chin.z
-          ),
-          depth_forehead_to_nose: Math.abs(
-            keypoints.forehead.z - keypoints.nose.z
-          ),
-        };
-
-        setDepth1(depthPairs.depth_leftcheek_to_nose);
-        setDepth2(depthPairs.depth_rightcheek_to_nose);
-
         // // Guide dot coordinates
 
         guideCanvasCTX.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
@@ -370,6 +320,7 @@ const stopWebcam = () => {
           guideCanvas.height
         );
         setFaceInside(insideOval);
+
         drawOval(
           guideCanvasCTX,
           guideCanvas.width,
@@ -381,143 +332,47 @@ const stopWebcam = () => {
         const rightCheek = faceLandmarks[454];
         const chin = faceLandmarks[152];
         const forehead = faceLandmarks[10];
-        
+
         // Calculate yaw (left-right head rotation) using Z-axis
         const dz = rightCheek.z - leftCheek.z; // Depth difference
         const dx = rightCheek.x - leftCheek.x; // Horizontal difference
         const yaw = Math.atan2(dz, dx) * (180 / Math.PI); // Yaw angle in degrees
-        
+
         // Calculate pitch (up-down head movement)
         const dy_pitch = chin.y - forehead.y;
         const dz_pitch = chin.z - forehead.z;
         const pitch = Math.atan2(dz_pitch, dy_pitch) * (180 / Math.PI);
-        
+
         let direction = "Center";
-        
+
         // Determine head turning (yaw using Z-axis)
         if (dz > 0.04) direction = "Left"; // Right cheek moves deeper (Z increases)
         if (dz < -0.04) direction = "Right"; // Left cheek moves deeper (Z increases)
-        
+
         // Determine head movement up/down
         if (pitch > 10) direction = "Down";
         if (pitch < -10) direction = "Up";
-        
+
         // Handle combined movements
         if (dz > 0.04 && pitch < -10) direction = "Up-Left";
         if (dz < -0.04 && pitch < -10) direction = "Up-Right";
         if (dz > 0.04 && pitch > 10) direction = "Down-Left";
         if (dz < -0.04 && pitch > 10) direction = "Down-Right";
-        
-        // console.log("Yaw:", yaw);
-        // console.log("Pitch:", pitch);
-        // console.log("Direction:", direction);
-        
+
         setHeadDirection(direction);
-        
+
 
         if (insideOval && !hasGenerated) {
           // const imageCheck = handleCaptureAndPredict()
-          hasGenerated = true;
-
-        }
-
-        if (!insideOval) {
-          hasGenerated = false;
-        }
-
-        //if (insideOval) {
-        // if (!isTracking) {
-        //   isTracking = true;
-        //   startTime = performance.now();
-        // }
-        //handleCaptureAndPredict();
-        //}
-        // else {
-        //   isTracking = false
-        //   setRealFrames(0)
-        // }
-        // totalFrames++;
-
-        // const mouthY = (guideCanvas.height / 3) * 2;
-        // const mouthX = guideCanvas.width / 2;
-
-        // const eyeLeftY = (guideCanvas.height / 2) - 20;
-        // const eyeLeftX = (guideCanvas.width / 2) + 60;
-
-        // const eyeRightY = (guideCanvas.height / 2) - 20;
-        // const eyeRightX = (guideCanvas.width / 2) - 60;
-
-        // // Get relevant face landmarks
-        // const noseTip = faceLandmarks[1];
-        // const rightEye = faceLandmarks[468]; // Adjust based on landmark index for left eye
-        // const leftEye = faceLandmarks[473]; // Adjust based on landmark index for right eye
-        // const mouthCenter = faceLandmarks[13]; // Adjust based on landmark index for mouth center
-
-        // // Calculate distances between landmarks and guide dots
-        // const distanceMouth = Math.sqrt(
-        //   Math.pow(mouthX - mouthCenter.x * guideCanvas.width, 2) + Math.pow(mouthY - mouthCenter.y * guideCanvas.height, 2)
-        // );
-
-        // const distanceLeftEye = Math.sqrt(
-        //   Math.pow(eyeLeftX - leftEye.x * guideCanvas.width, 2) + Math.pow(eyeLeftY - leftEye.y * guideCanvas.height, 2)
-        // );
-
-        // const distanceRightEye = Math.sqrt(
-        //   Math.pow(eyeRightX - rightEye.x * guideCanvas.width, 2) + Math.pow(eyeRightY - rightEye.y * guideCanvas.height, 2)
-        // );
-
-        // // Define thresholds (adjust based on your testing)
-        // const alignmentThreshold = 20; // Pixels
-
-        // Check if the face is aligned
-        // setLiveness("Face aligned");
-        if (faceLandmarks.length > 0) {
+          // sendImageToPredictApi()
           // handleCaptureAndPredict()
-
-          // Suggested Keypoints
-          const keypoints = {
-            nose: faceLandmarks[1],
-            left_eye: faceLandmarks[468],
-            right_eye: faceLandmarks[473],
-            left_cheek: faceLandmarks[234],
-            right_cheek: faceLandmarks[454],
-            chin: faceLandmarks[152],
-            forehead: faceLandmarks[10],
-          };
-
-          // Calculate Depth Pairs
-          const depthPairs = {
-            depth_leftcheek_to_nose: Math.abs(
-              keypoints.left_cheek.z - keypoints.nose.z
-            ),
-            depth_rightcheek_to_nose: Math.abs(
-              keypoints.right_cheek.z - keypoints.nose.z
-            ),
-            depth_lefteye_to_nose: Math.abs(
-              keypoints.left_eye.z - keypoints.nose.z
-            ),
-            depth_righteye_to_nose: Math.abs(
-              keypoints.right_eye.z - keypoints.nose.z
-            ),
-            depth_leftcheek_to_chin: Math.abs(
-              keypoints.left_cheek.z - keypoints.chin.z
-            ),
-            depth_rightcheek_to_chin: Math.abs(
-              keypoints.right_cheek.z - keypoints.chin.z
-            ),
-            depth_forehead_to_nose: Math.abs(
-              keypoints.forehead.z - keypoints.nose.z
-            ),
-          };
-
-          setDepth1(depthPairs.depth_leftcheek_to_nose);
-          setDepth2(depthPairs.depth_rightcheek_to_nose);
-
-          // console.log("left: " + depthPairs.depth_leftcheek_to_nose)
-          // console.log("right: " + depthPairs.depth_rightcheek_to_nose)
-
-          // setData((prevData) => [...prevData, depthPairs]);
+          hasGenerated = true;
         }
+
+        // if (!insideOval) {
+        //   hasGenerated = false;
+        // }
+
       } else {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // guideCanvasCTX.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
@@ -531,26 +386,27 @@ const stopWebcam = () => {
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-  
+
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
     // Convert canvas to a blob (image format)
     canvas.toBlob(async (blob) => {
       const formData = new FormData();
       formData.append("file", blob, "image.jpg");
-  
+
       try {
         const response = await axios.post("http://localhost:8000/predict/", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
-  
+
         console.log("Prediction Result:", response.data);
+        alert(response.data.predicted_class === 2 ? "Real" : "Fake")
         const isPredictionSuccessful = response.data.predicted_class === 2; // Assuming 2 is the successful class
         setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
-  
+
         // After every update, check if more than 50% predictions are successful
         const successRate = predictionResults.filter((result) => result).length / predictionResults.length;
         if (successRate > 0.5) {
@@ -562,67 +418,67 @@ const stopWebcam = () => {
         console.error("Error sending image to API:", error);
       }
     }, "image/jpeg");
-  
+
     // Clean up canvas
     canvas.remove();
   };
 
   const handleCaptureAndPredict = () => {
     if (!model || !videoRef.current) return;
-  
+
     const video = videoRef.current;
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-  
+
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
     let prediction;
-  
+
     // Use tf.tidy() to prevent memory leak
     tf.tidy(() => {
       const inputTensor = preprocessImage(canvas, [224, 224]);
-      
+
       const predictionResult = model.execute(inputTensor);
-      
+
       prediction = predictionResult.dataSync();  // Extract prediction values
-      
+
       const class_labels = ["3d", "digital", "live", "papercut", "print"];
-      
+
       // Initialize an array to store prediction with class labels
       const predictionWithIndex = [];
-  
+
       // Populate the predictionWithIndex array
       for (let i = 0; i < prediction.length; i++) {
         const value = prediction[i];
         const label = class_labels[i];
         predictionWithIndex.push({ value, label });
       }
-      
+
       // Sort the prediction array by value (highest first)
       predictionWithIndex.sort((a, b) => b.value - a.value);
-  
+
       // Get the class with the highest prediction value
       const topPrediction = predictionWithIndex[0];
-  
+
       // Assuming 'live' (index 2) is the successful class
       const isPredictionSuccessful = topPrediction.label === "live";
-  
+
       // Update prediction results array with success/failure
       setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
-  
+
       // Calculate success rate after each update
       const successRate = predictionResults.filter((result) => result).length / predictionResults.length;
-  
+
       // If more than 50% predictions are successful, mark attendance
       if (successRate > 0.5) {
         setIsAttendanceMarked(true); // Set to true if success rate > 50%
       } else {
-        setIsAttendanceMarked(false); 
+        setIsAttendanceMarked(false);
       }
     });
-  
+
     // Clean up canvas
     canvas.remove();
   };
@@ -819,7 +675,7 @@ const stopWebcam = () => {
           timer: 3000,
         });
       }
-      
+
       navigate("/");
     } catch (error) {
       setVerifyLoading(false);
@@ -850,6 +706,7 @@ const stopWebcam = () => {
       {/* <p>{Number(depth1).toFixed(4)}</p>
       <p>{Number(depth2).toFixed(4)}</p>
       <p>{confidence}</p> */}
+      <button onClick={sendImageToPredictApi}>Predict</button>
       <div className="flex flex-col justify-center items-center mb-1">
         <div>
           <img
@@ -864,21 +721,21 @@ const stopWebcam = () => {
             : "Move your face into the circle."}
         </h5>
       </div>
-    <div className="flex flex-col justify-center items-center mb-4 gap-3">
-      <h2>Move Your Head Following Below Direction</h2>
-      {/* <p>ท่าที่ต้องทำ: {requiredDirections.join(" → ")}</p> */}
-      <DirectionDisplay direction={requiredDirections[currentIndex]} />
-      
-      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-            
-        <div
-          className="h-full bg-primary transition-all duration-50"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      <div className="flex flex-col justify-center items-center mb-4 gap-3">
+        <h2>Turn Your Head Following Below Direction</h2>
+        {/* <p>ท่าที่ต้องทำ: {requiredDirections.join(" → ")}</p> */}
+        <DirectionDisplay direction={requiredDirections[currentIndex]} />
 
-      <DirectionDisplay direction={headDirection} />
-    </div>
+        <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+
+          <div
+            className="h-full bg-primary transition-all duration-50"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        <DirectionDisplay direction={headDirection} />
+      </div>
 
       <div
         id="liveView"
