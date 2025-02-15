@@ -77,6 +77,7 @@ const FaceScan = () => {
 
       return () => {
         clearTimeout(timeout); // Cleanup timeout when direction changes or component unmounts
+        stopWebcam();
       };
     }
 
