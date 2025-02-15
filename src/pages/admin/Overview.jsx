@@ -83,10 +83,9 @@ const Overview = () => {
     }
   };
 
-  // Function to disable all dates except the selected schedule days
   const disableNonMatchingDays = (date) => {
     if (!classScheduleDay || classScheduleDay.length === 0) return false; // Don't disable if no class is selected
-
+  
     const daysMap = {
       Sunday: 0,
       Monday: 1,
@@ -96,10 +95,11 @@ const Overview = () => {
       Friday: 5,
       Saturday: 6,
     };
-    return date.day() !== daysMap[classScheduleDay];
-  };
-
-    return !classScheduleDay.some(schedule => date.day() === daysMap[schedule.days]);
+  
+    // Check if the date matches at least one of the scheduled days
+    const isMatchingDay = classScheduleDay.some(schedule => date.day() === daysMap[schedule.days]);
+  
+    return !isMatchingDay; // Disable if no matching days
   };
 
   useEffect(() => {
