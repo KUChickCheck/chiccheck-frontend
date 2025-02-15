@@ -714,6 +714,7 @@ const FaceScan = () => {
       });
 
       setVerifyLoading(false);
+      stopWebcam();
 
       if (response.message === "Attendance marked successfully") {
         Swal.fire({
@@ -731,7 +732,7 @@ const FaceScan = () => {
           timer: 3000,
         });
       }
-      stopWebcam();
+      
       navigate("/");
     } catch (error) {
       setVerifyLoading(false);
