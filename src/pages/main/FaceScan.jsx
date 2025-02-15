@@ -39,6 +39,19 @@ const directionIcons = {
   "Center": ScanFace
 };
 
+const instructions = {
+  "Left": "Turn your head left",
+  "Right": "Turn your head right",
+  "Up": "Look up",
+  "Down": "Look down",
+  "Up-Left": "Look up and left",
+  "Up-Right": "Look up and right",
+  "Down-Left": "Look down and left",
+  "Down-Right": "Look down and right",
+  "Center": "Keep your head straight"
+};
+
+
 const DirectionDisplay = ({ direction }) => {
   const IconComponent = directionIcons[direction];
   return IconComponent ? <IconComponent size={24} /> : null;
@@ -97,7 +110,7 @@ const FaceScan = () => {
       setProgress(0);
 
       let progressInterval = setInterval(() => {
-        setProgress((prev) => Math.min(prev + 5, 100)); // Increase by ~1.67 every 16.67ms (60 FPS)
+        setProgress((prev) => Math.min(prev + 6, 100)); // Increase by ~1.67 every 16.67ms (60 FPS)
       }, 50);
 
       const timeout = setTimeout(() => {
@@ -720,10 +733,20 @@ const FaceScan = () => {
             : "Move your face into the circle."}
         </h5>
       </div>
+      <h2 className="font-bold text-2xl">{instructions[requiredDirections[currentIndex]]}</h2>
       <div className="flex flex-col justify-center items-center mb-4 gap-3">
-        <h2>Turn Your Head Following Below Direction</h2>
+        
         {/* <p>ท่าที่ต้องทำ: {requiredDirections.join(" → ")}</p> */}
-        <DirectionDisplay direction={requiredDirections[currentIndex]} />
+        <div className="grid grid-cols-2 justify-center items-center gap-4">
+          <div className="flex flex-col justify-center items-center">
+          Target: <DirectionDisplay direction={requiredDirections[currentIndex]} />
+          </div>
+          <div className="flex flex-col justify-center items-center">
+          Current: <DirectionDisplay direction={headDirection} />
+          </div>
+          
+        </div>
+
 
         <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
 
@@ -733,7 +756,6 @@ const FaceScan = () => {
           />
         </div>
 
-        <DirectionDisplay direction={headDirection} />
       </div>
 
       <div
