@@ -29,14 +29,6 @@ const Overview = () => {
     { icon: "/circle-x.svg", status: "Absent", amount: 0 },
   ]);
   const [notes, setNotes] = useState([
-    { id: 1, title: "Note 1", content: "This is the first note" },
-    { id: 2, title: "Note 2", content: "This is the second note" },
-    { id: 3, title: "Note 3", content: "This is the third note" },
-    { id: 4, title: "Note 4", content: "This is the fourth note" },
-    { id: 5, title: "Note 1", content: "This is the first note" },
-    { id: 6, title: "Note 2", content: "This is the second note" },
-    { id: 7, title: "Note 3", content: "This is the third note" },
-    { id: 8, title: "Note 4", content: "This is the fourth note" },
   ])
 
   const getClassesName = async () => {
@@ -62,6 +54,10 @@ const Overview = () => {
     const selectedClassData = classes.find((cls) => cls._id === class_id);
     if (selectedClassData) {
       setClassScheduleDay(selectedClassData.schedule);
+
+      // Store class_id and class_name in localStorage
+      localStorage.setItem('class_id', class_id);
+      localStorage.setItem('class_name', selectedClassData.name);
     }
   };
 
@@ -78,6 +74,7 @@ const Overview = () => {
         { icon: "/clock-alert.svg", status: "Late", amount: late },
         { icon: "/circle-x.svg", status: "Absent", amount: absent },
       ])
+      setNotes(response.notes)
     } catch (e) {
       console.error(e);
     }
@@ -108,6 +105,31 @@ const Overview = () => {
     }
   }, [selectedClass, selectedDate]);
 
+  const handleDateChange = (newValue) => {
+    const newDate = dayjs(newValue).add(7, 'hour'); // Adjust the date if necessary
+    setSelectedDate(newDate);
+  
+    // Store the selected date in localStorage
+    localStorage.setItem('selected_date', newDate.toISOString());
+  };
+
+  useEffect(() => {
+    // Check if class_id exists in localStorage and set the selected class
+    const storedClassId = localStorage.getItem('class_id');
+    if (storedClassId) {
+      setSelectedClass(storedClassId);
+      const selectedClassData = classes.find((cls) => cls._id === storedClassId);
+      if (selectedClassData) {
+        setClassScheduleDay(selectedClassData.schedule);
+      }
+    }
+
+    const storedDate = localStorage.getItem('selected_date');
+    if (storedDate) {
+      setSelectedDate(dayjs(storedDate)); // Set the selected date from localStorage
+    }
+  }, [classes])
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-4">
@@ -132,7 +154,7 @@ const Overview = () => {
             <DatePicker
               // label="Date of Class"
               value={selectedDate}
-              onChange={(newValue) => setSelectedDate(dayjs(newValue).add(7, "hour"))}
+              onChange={handleDateChange}
               slotProps={{ textField: { size: "small" } }}
               shouldDisableDate={(date) =>
                 date.isAfter(dayjs()) || disableNonMatchingDays(date)
@@ -172,8 +194,9 @@ const Overview = () => {
         {notes.map((note) => (
           <SwiperSlide key={note.id}>
             <div className="bg-white shadow-sm rounded-lg p-4 border">
-              <h3 className="text-lg font-bold">{note.title}</h3>
-              <p className="text-gray-600">{note.content}</p>
+              <h3 className="text-base font-bold">{note.student_id} {note.first_name} {note.last_name}</h3>
+              <p className="text-gray-500">{note.note_text}</p>
+              <p className="text-sm text-gray-500 mt-2">{note.timestamp}</p>
             </div>
           </SwiperSlide>
         ))}

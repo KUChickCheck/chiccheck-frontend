@@ -104,10 +104,10 @@ const FaceScan = () => {
         if (headDirection === requiredDirections[currentIndex]) {
           if (currentIndex < requiredDirections.length - 1) {
             setCurrentIndex((prev) => prev + 1);
-            // sendImageToPredictApi()
+            sendImageToPredictApi()
             // handleCaptureAndPredict()
           } else {
-            if (true) {
+            if (isAttendanceMarked) {
               markAttendance(marks);
             } else {
               Swal.fire({
@@ -364,7 +364,7 @@ const FaceScan = () => {
 
         if (insideOval && !hasGenerated) {
           // const imageCheck = handleCaptureAndPredict()
-          // sendImageToPredictApi()
+          sendImageToPredictApi()
           // handleCaptureAndPredict()
           hasGenerated = true;
         }
@@ -396,14 +396,13 @@ const FaceScan = () => {
       formData.append("file", blob, "image.jpg");
 
       try {
-        const response = await axios.post("http://localhost:8000/predict/", formData, {
+        const response = await axios.post("https://breezejirasak.com/model/predict", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
 
-        console.log("Prediction Result:", response.data);
-        alert(response.data.predicted_class === 2 ? "Real" : "Fake")
+        // alert(response.data.predicted_class === 2 ? "Real" : "Fake")
         const isPredictionSuccessful = response.data.predicted_class === 2; // Assuming 2 is the successful class
         setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
 
@@ -706,7 +705,7 @@ const FaceScan = () => {
       {/* <p>{Number(depth1).toFixed(4)}</p>
       <p>{Number(depth2).toFixed(4)}</p>
       <p>{confidence}</p> */}
-      <button onClick={sendImageToPredictApi}>Predict</button>
+      {/* <button onClick={sendImageToPredictApi}>Predict</button> */}
       <div className="flex flex-col justify-center items-center mb-1">
         <div>
           <img
