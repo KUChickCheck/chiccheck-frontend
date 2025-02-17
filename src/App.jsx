@@ -19,6 +19,7 @@ function App() {
       <Routes>
         <Route path="login" element={<Login />} />
         <Route path="" element={<PrivateRoute requiredRole="student"><Home /></PrivateRoute>} />
+        <Route path="/facescan/playground" element={<FaceLandmarkerComponent />} />
         <Route path="/facescan/:class_id" element={<PrivateRoute requiredRole="student"><FaceScan /></PrivateRoute>} />
         <Route path="/report" element={<PrivateRoute requiredRole="student"><IndividualReport /></PrivateRoute>} />
         <Route path="facemark" element={<FaceLandmarkerComponent />} />
