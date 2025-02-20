@@ -12,6 +12,10 @@ export const loginUser = (credentials, role) => async (dispatch) => {
     Cookies.set("token", token, { expires: 7, secure: true, sameSite: "Strict" }); // Expires in 7 days
     Cookies.set("user", JSON.stringify(user), { expires: 7, secure: true, sameSite: "Strict" });
 
+    localStorage.removeItem("class_id")
+    localStorage.removeItem("selected_date")
+    localStorage.removeItem("start_time")
+
     // Dispatch success action with token and user info
     dispatch({
       type: LOGIN_SUCCESS,
@@ -38,6 +42,10 @@ export const logoutUser = () => {
     Cookies.remove("token");
     Cookies.remove("user");
 
+    localStorage.removeItem("class_id")
+    localStorage.removeItem("selected_date")
+    localStorage.removeItem("start_time")
+    
     // Dispatch logout action
     dispatch({ type: LOGOUT });
   };
