@@ -409,7 +409,7 @@ const FaceScan = () => {
       formData.append("file", blob, "image.jpg");
 
       try {
-        const response = await axios.post("https://breezejirasak.com/model/predict", formData, {
+        const response = await axios.post(`${import.meta.env.VITE_MODEL_API}/predict`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
