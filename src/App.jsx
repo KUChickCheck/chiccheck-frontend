@@ -14,7 +14,7 @@ const FaceLandmarkerComponent = lazy(() => import("./components/FaceLandmarkerCo
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.VITE_BASE_URL || "/"}>
       <Suspense fallback={<div></div>}></Suspense>
       <Routes>
         <Route path="login" element={<Login />} />
