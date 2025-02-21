@@ -24,4 +24,5 @@ COPY --from=build /app/dist /app/dist
 EXPOSE 3000
 
 # Start serving the frontend
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["serve", "-s", "dist", "-l", "3000", "--single"]
+
