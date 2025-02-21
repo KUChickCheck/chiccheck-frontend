@@ -23,10 +23,10 @@ const Overview = () => {
   const [attendanceList, setAttendanceList] = useState([]);
   const [classScheduleDay, setClassScheduleDay] = useState("");
   const [report, setReport] = useState([
-    { icon: "/users.svg", status: "Total Student", amount: 0 },
-    { icon: "/circle-check-big.svg", status: "On Time", amount: 0 },
-    { icon: "/clock-alert.svg", status: "Late", amount: 0 },
-    { icon: "/circle-x.svg", status: "Absent", amount: 0 },
+    { icon: "users.svg", status: "Total Student", amount: 0 },
+    { icon: "circle-check-big.svg", status: "On Time", amount: 0 },
+    { icon: "clock-alert.svg", status: "Late", amount: 0 },
+    { icon: "circle-x.svg", status: "Absent", amount: 0 },
   ]);
   const [notes, setNotes] = useState([
   ])
@@ -74,10 +74,10 @@ const Overview = () => {
       const { total_students, ontime, late, absent } = response.statistics
       setAttendanceList(response.attendance);
       setReport([
-        { icon: "/users.svg", status: "Total Student", amount: total_students },
-        { icon: "/circle-check-big.svg", status: "On Time", amount: ontime },
-        { icon: "/clock-alert.svg", status: "Late", amount: late },
-        { icon: "/circle-x.svg", status: "Absent", amount: absent },
+        { icon: "users.svg", status: "Total Student", amount: total_students },
+        { icon: "circle-check-big.svg", status: "On Time", amount: ontime },
+        { icon: "clock-alert.svg", status: "Late", amount: late },
+        { icon: "circle-x.svg", status: "Absent", amount: absent },
       ])
       setNotes(response.notes)
     } catch (e) {
