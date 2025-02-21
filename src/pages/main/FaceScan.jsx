@@ -722,7 +722,7 @@ const FaceScan = () => {
       <div className="flex flex-col justify-center items-center mb-1">
         <div>
           <img
-            src={faceInside ? "/face-scan.gif" : "/face-frame.png"}
+            src={faceInside ? `${import.meta.env.VITE_BASE_URL}face-scan.gif` : `${import.meta.env.VITE_BASE_URL}face-frame.png`}
             alt="face scan animation"
             className="w-10 object-cover [clip-path:inset(10%)]"
           />

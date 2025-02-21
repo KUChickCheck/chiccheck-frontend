@@ -14,14 +14,14 @@ const FaceLandmarkerComponent = lazy(() => import("./components/FaceLandmarkerCo
 
 function App() {
   return (
-    <BrowserRouter basename="/chiccheck">
+    <BrowserRouter basename={import.meta.env.VITE_BASE_URL || "/"}>
       <Suspense fallback={<div></div>}></Suspense>
       <Routes>
         <Route path="login" element={<Login />} />
         <Route path="" element={<PrivateRoute requiredRole="student"><Home /></PrivateRoute>} />
-        <Route path="/facescan/playground" element={<FaceLandmarkerComponent />} />
-        <Route path="/facescan/:class_id" element={<PrivateRoute requiredRole="student"><FaceScan /></PrivateRoute>} />
-        <Route path="/report" element={<PrivateRoute requiredRole="student"><IndividualReport /></PrivateRoute>} />
+        <Route path="facescan/playground" element={<FaceLandmarkerComponent />} />
+        <Route path="facescan/:class_id" element={<PrivateRoute requiredRole="student"><FaceScan /></PrivateRoute>} />
+        <Route path="report" element={<PrivateRoute requiredRole="student"><IndividualReport /></PrivateRoute>} />
         <Route path="facemark" element={<FaceLandmarkerComponent />} />
 
         {/* Admin Routes */}

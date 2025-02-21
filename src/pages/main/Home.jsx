@@ -41,7 +41,7 @@ const Home = () => {
       <div className="flex justify-between items-center shadow-sm rounded-xl p-4">
         <div className="flex gap-4">
           <div>
-            <img src="/studentIcon.png" alt="student-icon" className="w-12 h-12" />
+            <img src={import.meta.env.VITE_BASE_URL + "studentIcon.png"} alt="student-icon" className="w-12 h-12" />
           </div>
           <div>
             <h5 className="text-xl font-bold">
@@ -53,7 +53,7 @@ const Home = () => {
 
         <div>
           <Link to="/report">
-          <img src="/statIcon.png" alt="stat-icon" className="hover:scale-110 transition-transform w-8 h-8"/>
+          <img src={import.meta.env.VITE_BASE_URL + "statIcon.png"} alt="stat-icon" className="hover:scale-110 transition-transform w-8 h-8"/>
           </Link>
         </div>
       </div>

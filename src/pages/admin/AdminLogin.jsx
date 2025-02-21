@@ -62,7 +62,7 @@ const AdminLogin = () => {
     <div className="container mx-auto px-4 flex items-center justify-center h-screen">
       <div className="w-full max-w-md">
         <div className='flex justify-center items-center mb-6 gap-1'>
-          <img src="/chiccheck.svg" alt="" width={32} />
+          <img src={import.meta.env.VITE_BASE_URL + "chiccheck.svg" } alt="" width={32} />
           <h1 className="text-center text-3xl font-bold">
             ChicCheck For Teacher
           </h1>

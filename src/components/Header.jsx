@@ -20,7 +20,7 @@ const HeaderComponent = ({ title }) => {
         <div>
           <Link to="/" className="text-decoration-none">
             <img
-              src="/chiccheck.svg"
+              src={import.meta.env.VITE_BASE_URL + "chiccheck.svg"}
               alt="chiccheck-logo"
               className="h-7 w-auto hover:scale-110 transition-transform"
             />
@@ -38,7 +38,7 @@ const HeaderComponent = ({ title }) => {
           className="cursor-pointer flex items-center space-x-2 text-red-600 hover:text-red-800"
         >
           <img
-            src="/logout.png"
+            src={import.meta.env.VITE_BASE_URL + "logout.png"}
             alt="logout"
             className="h-7 w-auto hover:scale-110 transition-transform"
           />
