@@ -156,15 +156,15 @@ const FaceScan = () => {
 
   }, [headDirection]);
 
-  const loadModel = async () => {
-    try {
-      const loadedModel = await tf.loadGraphModel("/liveness_model_graph/model.json");
-      setModel(loadedModel);
-      console.log("Model loaded successfully");
-    } catch (error) {
-      console.error("Error loading model:", error);
-    }
-  };
+  // const loadModel = async () => {
+  //   try {
+  //     const loadedModel = await tf.loadGraphModel("/liveness_model_graph/model.json");
+  //     setModel(loadedModel);
+  //     console.log("Model loaded successfully");
+  //   } catch (error) {
+  //     console.error("Error loading model:", error);
+  //   }
+  // };
 
   const preprocessImage = (imageElement, targetSize = [150, 150]) => {
     const tensor = tf.browser
@@ -177,15 +177,15 @@ const FaceScan = () => {
     return tensor;
   };
 
-  useEffect(() => {
-    loadModel();
+  // useEffect(() => {
+  //   loadModel();
 
-    // Clean up interval on component unmount
-    return () => {
-      if (intervalLivenessRef.current)
-        clearInterval(intervalLivenessRef.current);
-    };
-  }, []);
+  //   // Clean up interval on component unmount
+  //   return () => {
+  //     if (intervalLivenessRef.current)
+  //       clearInterval(intervalLivenessRef.current);
+  //   };
+  // }, []);
 
   // Initialize the face landmarker
   useEffect(() => {
@@ -435,65 +435,65 @@ const FaceScan = () => {
     canvas.remove();
   };
 
-  const handleCaptureAndPredict = () => {
-    if (!model || !videoRef.current) return;
+  // const handleCaptureAndPredict = () => {
+  //   if (!model || !videoRef.current) return;
 
-    const video = videoRef.current;
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+  //   const video = videoRef.current;
+  //   const canvas = document.createElement("canvas");
+  //   canvas.width = video.videoWidth;
+  //   canvas.height = video.videoHeight;
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  //   const ctx = canvas.getContext("2d");
+  //   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    let prediction;
+  //   let prediction;
 
-    // Use tf.tidy() to prevent memory leak
-    tf.tidy(() => {
-      const inputTensor = preprocessImage(canvas, [224, 224]);
+  //   // Use tf.tidy() to prevent memory leak
+  //   tf.tidy(() => {
+  //     const inputTensor = preprocessImage(canvas, [224, 224]);
 
-      const predictionResult = model.execute(inputTensor);
+  //     const predictionResult = model.execute(inputTensor);
 
-      prediction = predictionResult.dataSync();  // Extract prediction values
+  //     prediction = predictionResult.dataSync();  // Extract prediction values
 
-      const class_labels = ["3d", "digital", "live", "papercut", "print"];
+  //     const class_labels = ["3d", "digital", "live", "papercut", "print"];
 
-      // Initialize an array to store prediction with class labels
-      const predictionWithIndex = [];
+  //     // Initialize an array to store prediction with class labels
+  //     const predictionWithIndex = [];
 
-      // Populate the predictionWithIndex array
-      for (let i = 0; i < prediction.length; i++) {
-        const value = prediction[i];
-        const label = class_labels[i];
-        predictionWithIndex.push({ value, label });
-      }
+  //     // Populate the predictionWithIndex array
+  //     for (let i = 0; i < prediction.length; i++) {
+  //       const value = prediction[i];
+  //       const label = class_labels[i];
+  //       predictionWithIndex.push({ value, label });
+  //     }
 
-      // Sort the prediction array by value (highest first)
-      predictionWithIndex.sort((a, b) => b.value - a.value);
+  //     // Sort the prediction array by value (highest first)
+  //     predictionWithIndex.sort((a, b) => b.value - a.value);
 
-      // Get the class with the highest prediction value
-      const topPrediction = predictionWithIndex[0];
+  //     // Get the class with the highest prediction value
+  //     const topPrediction = predictionWithIndex[0];
 
-      // Assuming 'live' (index 2) is the successful class
-      const isPredictionSuccessful = topPrediction.label === "live";
+  //     // Assuming 'live' (index 2) is the successful class
+  //     const isPredictionSuccessful = topPrediction.label === "live";
 
-      // Update prediction results array with success/failure
-      setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
+  //     // Update prediction results array with success/failure
+  //     setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
 
-      // Calculate success rate after each update
-      const successRate = predictionResults.filter((result) => result).length / predictionResults.length;
+  //     // Calculate success rate after each update
+  //     const successRate = predictionResults.filter((result) => result).length / predictionResults.length;
 
-      // If more than 50% predictions are successful, mark attendance
-      if (successRate > 0.5) {
-        setIsAttendanceMarked(true); // Set to true if success rate > 50%
-      } else {
-        setIsAttendanceMarked(false);
-      }
-    });
+  //     // If more than 50% predictions are successful, mark attendance
+  //     if (successRate > 0.5) {
+  //       setIsAttendanceMarked(true); // Set to true if success rate > 50%
+  //     } else {
+  //       setIsAttendanceMarked(false);
+  //     }
+  //   });
 
-    // Clean up canvas
-    canvas.remove();
-  };
+  //   // Clean up canvas
+  //   canvas.remove();
+  // };
 
 
   const drawOval = (ctx, width, height, isInside) => {
