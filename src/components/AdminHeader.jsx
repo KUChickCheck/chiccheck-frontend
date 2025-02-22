@@ -23,14 +23,14 @@ const AdminHeader = ({ isVisible, setIsVisible }) => {
                 <Menu size={24} />
             </button>
             <div className='flex gap-3 justify-center items-center'>
-                {user && <h1 className="text-xl font-semibold">{user.first_name} {user.last_name}</h1>}
+                {user && <h1 className="text-xl font-semibold hidden sm:block">{user.first_name} {user.last_name}</h1>}
                 {/* <CircleUserRound size={24} className="text-primary" /> */}
                 <button
-                onClick={logout}
-                className="focus:outline-none"
-            >
-                <LogOut size={18} />
-            </button>
+                    onClick={logout}
+                    className="focus:outline-none"
+                >
+                    <LogOut size={18} />
+                </button>
             </div>
 
 
