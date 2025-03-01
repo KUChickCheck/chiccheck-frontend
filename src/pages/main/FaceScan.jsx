@@ -104,26 +104,26 @@ const FaceScan = () => {
 
   const navigate = useNavigate();
 
-  // const [location, setLocation] = useState({ latitude: null, longitude: null });
+  const [location, setLocation] = useState({ latitude: null, longitude: null });
 
-  // useEffect(() => {
-  //   if (navigator.geolocation) {
-  //     navigator.geolocation.getCurrentPosition(
-  //       (position) => {
-  //         setLocation({
-  //           latitude: position.coords.latitude,
-  //           longitude: position.coords.longitude,
-  //         });
-  //       },
-  //       (error) => {
-  //         alert(`Error getting location: ${error.message}`); // Show alert if user denies
-  //       }
-  //     );
-  //   } else {
-  //     const errorMsg = "Geolocation is not supported by this browser.";
-  //     alert(errorMsg);
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          alert(`Error getting location: ${error.message}`); // Show alert if user denies
+        }
+      );
+    } else {
+      const errorMsg = "Geolocation is not supported by this browser.";
+      alert(errorMsg);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isHolding && headDirection === requiredDirections[currentIndex]) {
@@ -683,18 +683,18 @@ const FaceScan = () => {
     try {
       setVerifyLoading(true);
 
-      // if (!location.latitude || !location.longitude) {
-      //   alert("Location not available. Please enable location services and try again.");
-      //   stopWebcam();
-      //   navigate("/");
-      // }
+      if (!location.latitude || !location.longitude) {
+        alert("Location not available. Please enable location services and try again.");
+        stopWebcam();
+        navigate("/");
+      }
 
       const response = await api.post("/attendance", {
         student_id: user._id,
         class_id: class_id,
         photo: base64Image,
-        // latitude: location.latitude,
-        // longitude: location.longitude
+        latitude: location.latitude,
+        longitude: location.longitude
       });
 
       setVerifyLoading(false);
