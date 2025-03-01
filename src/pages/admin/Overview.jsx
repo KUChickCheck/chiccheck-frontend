@@ -309,12 +309,20 @@ const Overview = () => {
                           : ""
                       }`}
                   >
-                    {student.location_status === "Outlier"
-                      ? "Out of Class"
-                      : student.location_status === "Normal"
-                        ? "In Class"
-                        : "-"}
+                    {student.location_status === "Unknown" || !student.location.latitude || !student.location.longitude ? (
+                      "-"
+                    ) : (
+                      <a
+                        href={`https://www.google.com/maps?q=${student.location.latitude},${student.location.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:text-blue-600"
+                      >
+                        {student.location_status === "Outlier" ? "Out of Class" : "In Class"}
+                      </a>
+                    )}
                   </td>
+
 
 
                 </tr>
