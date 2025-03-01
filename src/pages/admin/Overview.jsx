@@ -280,10 +280,10 @@ const Overview = () => {
                   <td className="py-3 px-6">{student.last_name}</td>
                   <td
                     className={`py-3 px-6 font-semibold ${student.status === "Present"
-                        ? "text-green-600"
-                        : student.status === "Late"
-                          ? "text-yellow-600"
-                          : "text-red-600"
+                      ? "text-green-600"
+                      : student.status === "Late"
+                        ? "text-yellow-600"
+                        : "text-red-600"
                       }`}
                   >
                     {student.status}
@@ -301,7 +301,22 @@ const Overview = () => {
                   ) : (
                     <td className="py-3 px-6">-</td>
                   )}
-                  <td className="py-3 px-6">{student.location_status ? student.location_status : "-"}</td>
+                  <td
+                    className={`py-3 px-6 ${student.location_status === "Outlier"
+                        ? "text-yellow-600"
+                        : student.location_status === "Normal"
+                          ? "text-green-600"
+                          : ""
+                      }`}
+                  >
+                    {student.location_status === "Outlier"
+                      ? "Out of Class"
+                      : student.location_status === "Normal"
+                        ? "In Class"
+                        : "-"}
+                  </td>
+
+
                 </tr>
               );
             })}
