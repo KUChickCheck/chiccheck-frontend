@@ -417,44 +417,36 @@ const FaceScan = () => {
 
   const sendImageToPredictApi = async () => {
     const video = videoRef.current;
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
+    if (!video) return;
+  
+    const scaleFactor = 0.5; // Adjust as needed
+    const canvas = new OffscreenCanvas(video.videoWidth * scaleFactor, video.videoHeight * scaleFactor);    
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Convert canvas to a blob (image format)
-    canvas.toBlob(async (blob) => {
-      const formData = new FormData();
-      formData.append("file", blob, "image.jpg");
-
-      try {
-        const response = await axios.post(`${import.meta.env.VITE_MODEL_API}/predict`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-
-        // alert(response.data.predicted_class === 2 ? "Real" : "Fake")
-        const isPredictionSuccessful = response.data.predicted_class === 2; // Assuming 2 is the successful class
-        setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
-
-        // After every update, check if more than 50% predictions are successful
-        const successRate = predictionResults.filter((result) => result).length / predictionResults.length;
-        if (successRate > 0.5) {
-          setIsAttendanceMarked(true); // Set to true if success rate > 50%
-        } else {
-          setIsAttendanceMarked(false);
-        }
-      } catch (error) {
-        console.error("Error sending image to API:", error);
-      }
-    }, "image/jpeg");
-
-    // Clean up canvas
-    canvas.remove();
+  
+    // Convert canvas directly to a Blob (Avoids rendering lag)
+    const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.7 });
+  
+    const formData = new FormData();
+    formData.append("file", blob, "image.jpg");
+  
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_MODEL_API}/predict`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      const isPredictionSuccessful = response.data.predicted_class === 2;
+      setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
+  
+      const successRate = (predictionResults.filter((r) => r).length + (isPredictionSuccessful ? 1 : 0)) / (predictionResults.length + 1);
+      setIsAttendanceMarked(successRate > 0.5);
+    } catch (error) {
+      console.error("Error sending image to API:", error);
+    }
   };
+  
 
   // const handleCaptureAndPredict = () => {
   //   if (!model || !videoRef.current) return;
