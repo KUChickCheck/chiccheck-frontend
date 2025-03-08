@@ -401,72 +401,64 @@ const FaceScan = () => {
     }, 0);
   };
 
+
+
   const sendImageToPredictApi = async () => {
+    const video = videoRef.current;
+    if (!video) return;
     if (!faceInside) {
       alert("Move your head to the circle");
       return;
     }
-    const video = videoRef.current;
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
 
+    const scaleFactor = 0.5; // Adjust as needed
+    const canvas = new OffscreenCanvas(video.videoWidth * scaleFactor, video.videoHeight * scaleFactor);
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Convert canvas to a blob (image format)
-    canvas.toBlob(async (blob) => {
-      const formData = new FormData();
-      formData.append("file", blob, "image.jpg");
+    setVerifyLoading(true);
+    // Convert canvas directly to a Blob (Avoids rendering lag)
+    const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.7 });
 
-      try {
-        setVerifyLoading(true);
-        const response = await axios.post(
-          "https://breezejirasak.com/model/predict",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+    const formData = new FormData();
+    formData.append("file", blob, "image.jpg");
 
-        setVerifyLoading(false);
-        // alert(response.data.predicted_class === 2 ? "Real" : "Fake")
-        const isPredictionSuccessful = response.data.predicted_class === 2; // Assuming 2 is the successful class
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_MODEL_API}/predict`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-        if (isPredictionSuccessful) {
-          Swal.fire({
-            icon: "success",
-            title: "You are Real!!",
-            showConfirmButton: false,
-            timer: 3000,
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "You are Fake!!",
-            showConfirmButton: false,
-            timer: 3000,
-          });
-        }
+      setVerifyLoading(false);
+      // alert(response.data.predicted_class === 2 ? "Real" : "Fake")
+      const isPredictionSuccessful = response.data.predicted_class === 2; // Assuming 2 is the successful class
 
-        // setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
-
-        // // After every update, check if more than 50% predictions are successful
-        // const successRate = predictionResults.filter((result) => result).length / predictionResults.length;
-        // if (successRate > 0.5) {
-        //   setIsAttendanceMarked(true); // Set to true if success rate > 50%
-        // } else {
-        //   setIsAttendanceMarked(false);
-        // }
-      } catch (error) {
-        console.error("Error sending image to API:", error);
+      if (isPredictionSuccessful) {
+        Swal.fire({
+          icon: "success",
+          title: "You are Real!!",
+          showConfirmButton: false,
+          timer: 3000,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "You are Fake!!",
+          showConfirmButton: false,
+          timer: 3000,
+        });
       }
-    }, "image/jpeg");
-
-    // Clean up canvas
-    canvas.remove();
+    } catch (error) {
+      setVerifyLoading(false);
+      Swal.fire({
+        icon: "error",
+        title: error,
+        showConfirmButton: false,
+        timer: 3000,
+      });
+      console.error("Error sending image to API:", error);
+    }
   };
 
   const handleCaptureAndPredict = () => {
