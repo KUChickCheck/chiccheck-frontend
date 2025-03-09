@@ -700,7 +700,7 @@ const FaceScan = () => {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto h-screen flex flex-col justify-center items-center mt-10 px-4 box-border">
+    <div className="w-full max-w-md mx-auto h-screen flex flex-col items-center mt-10 px-4 box-border">
       <button
         onClick={sendImageToPredictApi}
         className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 mb-4"
