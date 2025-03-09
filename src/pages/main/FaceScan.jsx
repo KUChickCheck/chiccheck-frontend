@@ -64,6 +64,7 @@ const getRandomDirections = () => {
   // let randomDirections = shuffled.slice(0, 1); // Get 4 random directions
   let randomDirections = []
   randomDirections.push("Center"); // Add "Back to Center" to the end
+  randomDirections.push("Center");
   return randomDirections;
 };
 
@@ -161,7 +162,7 @@ const FaceScan = () => {
         setIsHolding(false);
         setProgress(0);
         clearInterval(progressInterval);
-      }, 2000);
+      }, 1000);
 
       return () => {
         clearTimeout(timeout);
@@ -444,8 +445,7 @@ const FaceScan = () => {
       setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
   
       const successRate = (predictionResults.filter((r) => r).length + (isPredictionSuccessful ? 1 : 0)) / (predictionResults.length + 1);
-      // setIsAttendanceMarked(successRate > 0.5);
-      setIsAttendanceMarked(isPredictionSuccessful)
+      setIsAttendanceMarked(successRate > 0.5);
     } catch (error) {
       console.error("Error sending image to API:", error);
     }
