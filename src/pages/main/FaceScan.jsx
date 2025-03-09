@@ -396,7 +396,7 @@ const FaceScan = () => {
         if (dz < -0.04 && pitch > 10) direction = "Down-Right";
         
         setHeadDirection(direction);
-        
+
         if (insideOval) {
           // const imageCheck = handleCaptureAndPredict()
           if (!hasGenerated) {
@@ -404,8 +404,6 @@ const FaceScan = () => {
             // handleCaptureAndPredict()
             hasGenerated = true;
           }
-        } else {
-          setHeadDirection("")
         }
 
         // if (!insideOval) {
