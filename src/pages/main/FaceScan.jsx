@@ -61,9 +61,7 @@ const directionsList = ["Left", "Right", "Up", "Down", "Up-Left", "Up-Right", "D
 
 const getRandomDirections = () => {
   let shuffled = [...directionsList].sort(() => Math.random() - 0.5); // Shuffle the array
-  // let randomDirections = shuffled.slice(0, 1); // Get 4 random directions
-  let randomDirections = [];
-  randomDirections.push("Center");
+  let randomDirections = shuffled.slice(0, 1); // Get 4 random directions
   randomDirections.push("Center");
   return randomDirections;
 };
