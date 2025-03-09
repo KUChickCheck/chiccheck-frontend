@@ -161,7 +161,7 @@ const FaceScan = () => {
         setIsHolding(false);
         setProgress(0);
         clearInterval(progressInterval);
-      }, 1000);
+      }, 1500);
 
       return () => {
         clearTimeout(timeout);
@@ -394,9 +394,6 @@ const FaceScan = () => {
         if (dz > 0.04 && pitch > 10) direction = "Down-Left";
         if (dz < -0.04 && pitch > 10) direction = "Down-Right";
 
-        
-
-
         if (insideOval) {
           setHeadDirection(direction);
           // const imageCheck = handleCaptureAndPredict()
@@ -405,6 +402,8 @@ const FaceScan = () => {
             // handleCaptureAndPredict()
             hasGenerated = true;
           }
+        } else {
+          setHeadDirection("")
         }
 
         // if (!insideOval) {
