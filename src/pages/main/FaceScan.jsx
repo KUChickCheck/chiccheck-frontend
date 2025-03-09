@@ -161,7 +161,7 @@ const FaceScan = () => {
         setIsHolding(false);
         setProgress(0);
         clearInterval(progressInterval);
-      }, 1500);
+      }, 2000);
 
       return () => {
         clearTimeout(timeout);
