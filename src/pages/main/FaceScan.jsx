@@ -394,9 +394,10 @@ const FaceScan = () => {
         if (dz < -0.04 && pitch < -10) direction = "Up-Right";
         if (dz > 0.04 && pitch > 10) direction = "Down-Left";
         if (dz < -0.04 && pitch > 10) direction = "Down-Right";
-
+        
+        setHeadDirection(direction);
+        
         if (insideOval) {
-          setHeadDirection(direction);
           // const imageCheck = handleCaptureAndPredict()
           if (!hasGenerated) {
             sendImageToPredictApi()
