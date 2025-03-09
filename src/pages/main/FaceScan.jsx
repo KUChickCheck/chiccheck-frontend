@@ -444,7 +444,8 @@ const FaceScan = () => {
       setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
   
       const successRate = (predictionResults.filter((r) => r).length + (isPredictionSuccessful ? 1 : 0)) / (predictionResults.length + 1);
-      setIsAttendanceMarked(successRate > 0.5);
+      // setIsAttendanceMarked(successRate > 0.5);
+      setIsAttendanceMarked(isPredictionSuccessful)
     } catch (error) {
       console.error("Error sending image to API:", error);
     }
