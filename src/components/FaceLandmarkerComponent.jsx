@@ -408,6 +408,7 @@ const FaceScan = () => {
     if (!video) return;
     if (!faceInside) {
       alert("Move your head to the circle");
+      location.reload(); // Refresh the page
       return;
     }
 
