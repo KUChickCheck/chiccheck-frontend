@@ -61,7 +61,7 @@ const directionsList = ["Left", "Right", "Up", "Down", "Up-Left", "Up-Right", "D
 
 const getRandomDirections = () => {
   let shuffled = [...directionsList].sort(() => Math.random() - 0.5); // Shuffle the array
-  let randomDirections = shuffled.slice(0, 1); // Get 4 random directions
+  let randomDirections = shuffled.slice(0, 3); // Get 4 random directions
   randomDirections.push("Center");
   return randomDirections;
 };
@@ -106,6 +106,8 @@ const FaceScan = () => {
 
   const [location, setLocation] = useState({ latitude: null, longitude: null });
 
+  const [image, setImage] = useState([])
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -128,6 +130,7 @@ const FaceScan = () => {
   useEffect(() => {
     if (!isHolding && headDirection === requiredDirections[currentIndex]) {
       setIsHolding(true);
+      captureImage()
       setProgress(0);
 
       let progressInterval = setInterval(() => {
@@ -138,21 +141,22 @@ const FaceScan = () => {
         if (headDirection === requiredDirections[currentIndex]) {
           if (currentIndex < requiredDirections.length - 1) {
             setCurrentIndex((prev) => prev + 1);
-            sendImageToPredictApi()
-            // handleCaptureAndPredict()
+            // sendImageToPredictApi()
           } else {
-            if (isAttendanceMarked) {
-              markAttendance(marks);
-            } else {
-              Swal.fire({
-                icon: "error",
-                title: "You are fake!!",
-                showConfirmButton: false,
-                timer: 3000,
-              });
-              stopWebcam();
-              navigate("/");
-            }
+            // sendImageToPredictApi()
+            markAttendance(marks);
+            // if (isAttendanceMarked) {
+            //   markAttendance(marks);
+            // } else {
+            //   Swal.fire({
+            //     icon: "error",
+            //     title: "You are fake!!",
+            //     showConfirmButton: false,
+            //     timer: 3000,
+            //   });
+            //   stopWebcam();
+            //   navigate("/");
+            // }
             setCurrentIndex(0);
             setRequiredDirections(getRandomDirections());
           }
@@ -282,6 +286,7 @@ const FaceScan = () => {
       } else {
         alert("An error occurred: " + error.message);
       }
+      setImage([])
       stopWebcam();
       navigate("/");
     }
@@ -394,15 +399,20 @@ const FaceScan = () => {
         if (dz < -0.04 && pitch > 10) direction = "Down-Right";
         
         setHeadDirection(direction);
+        
+        // if (insideOval) {
+        //   // const imageCheck = handleCaptureAndPredict()
+        //   if (!hasGenerated) {
+        //     sendImageToPredictApi()
+        //     // handleCaptureAndPredict()
+        //     hasGenerated = true;
+        //   }
+        // }
 
-        if (insideOval) {
-          // const imageCheck = handleCaptureAndPredict()
-          if (!hasGenerated) {
-            sendImageToPredictApi()
-            // handleCaptureAndPredict()
-            hasGenerated = true;
-          }
-        }
+        if (!hasGenerated) {
+          captureImage()
+        } 
+        hasGenerated = true;
 
         // if (!insideOval) {
         //   hasGenerated = false;
@@ -416,7 +426,7 @@ const FaceScan = () => {
     }, 0);
   };
 
-  const sendImageToPredictApi = async () => {
+  const captureImage = async () => {
     const video = videoRef.current;
     if (!video) return;
   
@@ -425,28 +435,49 @@ const FaceScan = () => {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   
-    // Convert canvas directly to a Blob (Avoids rendering lag)
-    const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.7 });
+    // Convert canvas to Blob
+    const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.5 });
   
-    const formData = new FormData();
-    formData.append("file", blob, "image.jpg");
+    setImage(prevImages => [...prevImages, blob]); // Append new image to the list
+  };
+
+  const sendImageToPredictApi = async () => {
+    if (image.length === 0) return; // Ensure there's at least one image
   
     try {
-      const response = await axios.post(`${import.meta.env.VITE_MODEL_API}/predict`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const results = await Promise.all(
+        image.map(async (imgBlob) => {
+          const formData = new FormData();
+          formData.append("file", imgBlob, "image.jpg");
   
-      const isPredictionSuccessful = response.data.predicted_class === 2;
-      setPredictionResults((prevResults) => [...prevResults, isPredictionSuccessful]);
+          const response = await axios.post(
+            `${import.meta.env.VITE_MODEL_API}/predict`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
   
-      const successRate = (predictionResults.filter((r) => r).length + (isPredictionSuccessful ? 1 : 0)) / (predictionResults.length + 1);
-      setIsAttendanceMarked(successRate > 0.5);
+          return response.data.predicted_class === 2;
+        })
+      );
+  
+      setPredictionResults((prevResults) => [...prevResults, ...results]);
+  
+      const successRate =
+        (predictionResults.filter((r) => r).length + results.filter((r) => r).length) /
+        (predictionResults.length + results.length);
+  
+      // setIsAttendanceMarked(successRate > 0.5);
+
+      return successRate > 0.5
     } catch (error) {
-      console.error("Error sending image to API:", error);
+      console.error("Error sending images to API:", error);
     }
   };
+  
   
 
   // const handleCaptureAndPredict = () => {
@@ -678,6 +709,21 @@ const FaceScan = () => {
 
       if (!location.latitude || !location.longitude) {
         alert("Location not available. Please enable location services and try again.");
+        setImage([])
+        stopWebcam();
+        navigate("/");
+      }
+
+      const isLive = await sendImageToPredictApi()
+
+      if (!isLive) {
+        Swal.fire({
+          icon: "error",
+          title: "You are fake!!",
+          showConfirmButton: false,
+          timer: 3000,
+        })
+        setImage([])
         stopWebcam();
         navigate("/");
       }
@@ -691,6 +737,7 @@ const FaceScan = () => {
       });
 
       setVerifyLoading(false);
+      setImage([])
       stopWebcam();
 
       if (response.message === "Attendance marked successfully") {
@@ -720,6 +767,7 @@ const FaceScan = () => {
         showConfirmButton: false,
         timer: 3000,
       });
+      setImage([])
       stopWebcam();
       navigate("/");
     }
