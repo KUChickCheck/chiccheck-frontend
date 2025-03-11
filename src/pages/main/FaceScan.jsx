@@ -90,7 +90,7 @@ const FaceScan = () => {
 
   const [realFrames, setRealFrames] = useState(0);
 
-  const [headDirection, setHeadDirection] = useState("");
+  const [headDirection, setHeadDirection] = useState("Center");
   const [requiredDirections, setRequiredDirections] = useState(getRandomDirections());
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
@@ -400,19 +400,20 @@ const FaceScan = () => {
         
         setHeadDirection(direction);
         
-        // if (insideOval) {
-        //   // const imageCheck = handleCaptureAndPredict()
-        //   if (!hasGenerated) {
-        //     sendImageToPredictApi()
-        //     // handleCaptureAndPredict()
-        //     hasGenerated = true;
-        //   }
-        // }
+        if (insideOval) {
+          // const imageCheck = handleCaptureAndPredict()
+          if (!hasGenerated) {
+            captureImage()
+            // sendImageToPredictApi()
+            // handleCaptureAndPredict()
+            hasGenerated = true;
+          }
+        }
 
         if (!hasGenerated) {
           captureImage()
         } 
-        hasGenerated = true;
+        // hasGenerated = true;
 
         // if (!insideOval) {
         //   hasGenerated = false;
