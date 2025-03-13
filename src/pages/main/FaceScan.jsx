@@ -404,16 +404,12 @@ const FaceScan = () => {
           // const imageCheck = handleCaptureAndPredict()
           if (!hasGenerated) {
             captureImage()
-            console.log("first capture")
             // sendImageToPredictApi()
             // handleCaptureAndPredict()
             hasGenerated = true;
           }
         }
 
-        if (!hasGenerated) {
-          captureImage()
-        } 
         // hasGenerated = true;
 
         // if (!insideOval) {
