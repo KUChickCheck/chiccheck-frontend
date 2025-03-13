@@ -162,7 +162,7 @@ const FaceScan = () => {
           }
         }
         setIsHolding(false);
-        setProgress(0);
+        setProgress(100);
         clearInterval(progressInterval);
       }, 1000);
 
@@ -173,8 +173,9 @@ const FaceScan = () => {
       };
     }
 
-    // Reset progress if the user moves before 500ms
+    // Reset progress if the user moves before 1000ms
     if (isHolding && headDirection !== requiredDirections[currentIndex]) {
+      setImage(prevImages => prevImages.slice(0, -1));
       setIsHolding(false);
       setProgress(0);
     }
@@ -435,7 +436,6 @@ const FaceScan = () => {
   
     // Convert canvas to Blob
     const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.5 });
-    console.log("capture")
   
     setImage(prevImages => [...prevImages, blob]); // Append new image to the list
   };
