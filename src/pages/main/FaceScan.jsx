@@ -404,6 +404,7 @@ const FaceScan = () => {
           // const imageCheck = handleCaptureAndPredict()
           if (!hasGenerated) {
             captureImage()
+            console.log("first capture")
             // sendImageToPredictApi()
             // handleCaptureAndPredict()
             hasGenerated = true;
@@ -438,6 +439,7 @@ const FaceScan = () => {
   
     // Convert canvas to Blob
     const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.5 });
+    console.log("capture")
   
     setImage(prevImages => [...prevImages, blob]); // Append new image to the list
   };
