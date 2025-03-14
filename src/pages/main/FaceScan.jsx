@@ -283,7 +283,6 @@ const FaceScan = () => {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream; // Store the stream in streamRef
       videoRef.current.srcObject = stream; // Set the video source object
-      setCameraLoading(false)
     } catch (error) {
       if (error.name === "NotAllowedError") {
         alert("Permission denied: Please allow webcam access.");
@@ -321,6 +320,8 @@ const FaceScan = () => {
     const duration = 3000;
     let startTime = null;
     let isTracking = false;
+
+    setCameraLoading(false)
 
     intervalRef.current = setInterval(() => {
       const video = videoRef.current;
