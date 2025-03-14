@@ -107,6 +107,7 @@ const FaceScan = () => {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
 
   const [image, setImage] = useState([])
+  const [cameraLoading, setCameraLoading] = useState(false)
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -128,6 +129,7 @@ const FaceScan = () => {
   }, []);
 
   useEffect(() => {
+    setProgress(0);
     if (!isHolding && headDirection === requiredDirections[currentIndex]) {
       setIsHolding(true);
       captureImage()
@@ -175,7 +177,10 @@ const FaceScan = () => {
 
     // Reset progress if the user moves before 1000ms
     if (isHolding && headDirection !== requiredDirections[currentIndex]) {
-      setImage(prevImages => prevImages.slice(0, -1));
+      if (image.length > 1) {
+        setImage(prevImages => prevImages.slice(0, -1));
+        console.log("delete")
+      }
       setIsHolding(false);
       setProgress(0);
     }
@@ -271,12 +276,14 @@ const FaceScan = () => {
       alert("Face Landmarker is still loading. Please try again.");
       return;
     }
+    setCameraLoading(true)
 
     try {
       const constraints = { video: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream; // Store the stream in streamRef
       videoRef.current.srcObject = stream; // Set the video source object
+      setCameraLoading(false)
     } catch (error) {
       if (error.name === "NotAllowedError") {
         alert("Permission denied: Please allow webcam access.");
@@ -398,9 +405,9 @@ const FaceScan = () => {
         if (dz < -0.04 && pitch < -10) direction = "Up-Right";
         if (dz > 0.04 && pitch > 10) direction = "Down-Left";
         if (dz < -0.04 && pitch > 10) direction = "Down-Right";
-        
+
         setHeadDirection(direction);
-        
+
         if (insideOval) {
           // const imageCheck = handleCaptureAndPredict()
           if (!hasGenerated) {
@@ -428,27 +435,27 @@ const FaceScan = () => {
   const captureImage = async () => {
     const video = videoRef.current;
     if (!video) return;
-  
+
     const scaleFactor = 0.5; // Adjust as needed
-    const canvas = new OffscreenCanvas(video.videoWidth * scaleFactor, video.videoHeight * scaleFactor);    
+    const canvas = new OffscreenCanvas(video.videoWidth * scaleFactor, video.videoHeight * scaleFactor);
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
     // Convert canvas to Blob
     const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.5 });
-  
+
     setImage(prevImages => [...prevImages, blob]); // Append new image to the list
   };
 
   const sendImageToPredictApi = async () => {
     if (image.length === 0) return; // Ensure there's at least one image
-  
+
     try {
       const results = await Promise.all(
         image.map(async (imgBlob) => {
           const formData = new FormData();
           formData.append("file", imgBlob, "image.jpg");
-  
+
           const response = await axios.post(
             `${import.meta.env.VITE_MODEL_API}/predict`,
             formData,
@@ -458,17 +465,17 @@ const FaceScan = () => {
               },
             }
           );
-  
+
           return response.data.predicted_class === 2;
         })
       );
-  
+
       setPredictionResults((prevResults) => [...prevResults, ...results]);
-  
+
       const successRate =
         (predictionResults.filter((r) => r).length + results.filter((r) => r).length) /
         (predictionResults.length + results.length);
-  
+
       // setIsAttendanceMarked(successRate > 0.5);
 
       return successRate > 0.5
@@ -477,8 +484,6 @@ const FaceScan = () => {
     }
   };
   
-  
-
   // const handleCaptureAndPredict = () => {
   //   if (!model || !videoRef.current) return;
 
@@ -674,7 +679,7 @@ const FaceScan = () => {
     });
 
     // Add some padding around the face
-    const padding = 40;
+    const padding = 50;
     minX = Math.max(0, minX - padding);
     minY = Math.max(0, minY - padding);
     maxX = Math.min(canvas.width, maxX + padding);
@@ -701,7 +706,7 @@ const FaceScan = () => {
       faceHeight
     );
 
-    const base64Image = faceCanvas.toDataURL("image/png");
+    const base64Image = faceCanvas.toDataURL("image/jpeg", 0.3); // 50% quality
 
     try {
       setVerifyLoading(true);
@@ -804,16 +809,16 @@ const FaceScan = () => {
       </div>
       <h2 className="font-bold text-2xl">{instructions[requiredDirections[currentIndex]]}</h2>
       <div className="flex flex-col justify-center items-center mb-4 gap-3">
-        
+
         {/* <p>ท่าที่ต้องทำ: {requiredDirections.join(" → ")}</p> */}
         <div className="grid grid-cols-2 justify-center items-center gap-4">
           <div className="flex flex-col justify-center items-center">
-          Target: <DirectionDisplay direction={requiredDirections[currentIndex]} />
+            Target: <DirectionDisplay direction={requiredDirections[currentIndex]} />
           </div>
           <div className="flex flex-col justify-center items-center">
-          Current: <DirectionDisplay direction={headDirection} />
+            Current: <DirectionDisplay direction={headDirection} />
           </div>
-          
+
         </div>
 
 
@@ -876,6 +881,36 @@ const FaceScan = () => {
           </svg>
 
           <span className="text-white text-3xl font-bold">FaceVerify...</span>
+        </div>
+      )}
+
+      {cameraLoading && (
+        <div
+          id="loading-overlay"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60"
+        >
+          <svg
+            className="animate-spin h-8 w-8 text-white mr-3"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+
+          <span className="text-white text-3xl font-bold">Load Camera...</span>
         </div>
       )}
     </div>
