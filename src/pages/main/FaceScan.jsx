@@ -61,7 +61,8 @@ const directionsList = ["Left", "Right", "Up", "Down", "Up-Left", "Up-Right", "D
 
 const getRandomDirections = () => {
   let shuffled = [...directionsList].sort(() => Math.random() - 0.5); // Shuffle the array
-  let randomDirections = shuffled.slice(0, 3); // Get 4 random directions
+  // let randomDirections = shuffled.slice(0, 3); // Get 4 random directions
+  let randomDirections = ["Center"]
   randomDirections.push("Center");
   return randomDirections;
 };
@@ -90,7 +91,7 @@ const FaceScan = () => {
 
   const [realFrames, setRealFrames] = useState(0);
 
-  const [headDirection, setHeadDirection] = useState("Center");
+  const [headDirection, setHeadDirection] = useState("");
   const [requiredDirections, setRequiredDirections] = useState(getRandomDirections());
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
