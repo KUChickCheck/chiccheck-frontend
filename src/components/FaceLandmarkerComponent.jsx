@@ -414,7 +414,7 @@ const FaceScan = () => {
     if (!faceInside) {
       Swal.fire({
         icon: "error",
-        title: "Move your head to the head!!",
+        title: "Move your head into the circle!!",
         showConfirmButton: true,
         timer: 3000,
       });
