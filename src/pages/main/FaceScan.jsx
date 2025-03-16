@@ -732,38 +732,39 @@ const FaceScan = () => {
         setImage([])
         stopWebcam();
         navigate("/");
-      }
-
-      const response = await api.post("/attendance", {
-        student_id: user._id,
-        class_id: class_id,
-        photo: base64Image,
-        latitude: location.latitude,
-        longitude: location.longitude
-      });
-
-      setVerifyLoading(false);
-      setImage([])
-      stopWebcam();
-
-      if (response.message === "Attendance marked successfully") {
-        Swal.fire({
-          icon: "success",
-          title: response.message,
-          text: `Class: ${response.attendance.class_details.name} (${response.attendance.status})`,
-          showConfirmButton: false,
-          timer: 3000,
-        });
+        return;
       } else {
-        Swal.fire({
-          icon: "error",
-          title: response.message,
-          showConfirmButton: false,
-          timer: 3000,
+        const response = await api.post("/attendance", {
+          student_id: user._id,
+          class_id: class_id,
+          photo: base64Image,
+          latitude: location.latitude,
+          longitude: location.longitude
         });
+  
+        setVerifyLoading(false);
+        setImage([])
+        stopWebcam();
+  
+        if (response.message === "Attendance marked successfully") {
+          Swal.fire({
+            icon: "success",
+            title: response.message,
+            text: `Class: ${response.attendance.class_details.name} (${response.attendance.status})`,
+            showConfirmButton: false,
+            timer: 3000,
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: response.message,
+            showConfirmButton: false,
+            timer: 3000,
+          });
+        }
+        navigate("/");
       }
 
-      navigate("/");
     } catch (error) {
       setVerifyLoading(false);
 
