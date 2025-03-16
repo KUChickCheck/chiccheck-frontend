@@ -429,7 +429,7 @@ const FaceScan = () => {
 
     setVerifyLoading(true);
     // Convert canvas directly to a Blob (Avoids rendering lag)
-    const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.7 });
+    const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.9 });
 
     const formData = new FormData();
     formData.append("file", blob, "image.jpg");

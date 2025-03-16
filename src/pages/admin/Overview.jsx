@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import ReportCard from "../../components/ReportCard";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Scrollbar, A11y } from "swiper/modules";
+import ExportComponent from "../../components/ExportComponent";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -236,6 +237,22 @@ const Overview = () => {
           ))}
         </Swiper>
       </div>
+      
+        <div className="flex justify-end items-center">
+          <div>
+          {selectedClass && selectedDate && startTime && attendanceList?.length > 0 ? (
+            <ExportComponent
+              selectedClass={classes.find((cls) => cls._id === selectedClass).class_name}
+              selectedDate={selectedDate}
+              attendanceList={attendanceList}
+              startTime={startTime}
+            />
+          ) : (
+            <p className="text-gray-500">No data available for export</p>
+          )}
+          </div>
+        </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-300 shadow-lg rounded-lg">
           <thead>
@@ -303,10 +320,10 @@ const Overview = () => {
                   )}
                   <td
                     className={`py-3 px-6 ${student.location_status === "Outlier"
-                        ? "text-yellow-600"
-                        : student.location_status === "Normal"
-                          ? "text-green-600"
-                          : ""
+                      ? "text-yellow-600"
+                      : student.location_status === "Normal"
+                        ? "text-green-600"
+                        : ""
                       }`}
                   >
                     {student.location_status === "Unknown" || !student.location.latitude || !student.location.longitude ? (
