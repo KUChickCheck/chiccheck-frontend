@@ -53,6 +53,13 @@ const Overview = () => {
     setSelectedClass(class_id); // Get the value of the selected option
     setSelectedDate(null);
     setAttendanceList([])
+    setReport([
+      { icon: "users.svg", status: "Total Student", amount: 0 },
+      { icon: "circle-check-big.svg", status: "On Time", amount: 0 },
+      { icon: "clock-alert.svg", status: "Late", amount: 0 },
+      { icon: "circle-x.svg", status: "Absent", amount: 0 },
+    ])
+    setNotes([])
 
 
     // Find the selected class to get the schedule day
