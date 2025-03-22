@@ -633,8 +633,8 @@ const FaceScan = () => {
     const ovalX = width / 2;
     const ovalY = height / 2;
     const minSize = Math.min(width, height);
-    const ovalWidth = minSize * 0.25; // 40% of minSize (narrower)
-    const ovalHeight = minSize * 0.35; // 70% of minSize (taller)
+    const ovalWidth =(minSize * 0.25) * 80/100; // 40% of minSize (narrower)
+    const ovalHeight =(minSize * 0.35) * 80/100; // 70% of minSize (taller)
     // const ovalWidth = width / 4;
     // const ovalHeight = height / 3;
 
