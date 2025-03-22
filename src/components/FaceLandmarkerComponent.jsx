@@ -387,6 +387,7 @@ const FaceScan = () => {
         if (dz < -0.04 && pitch > 10) direction = "Down-Right";
 
         setHeadDirection(direction);
+        setLandmarks(faceLandmarks)
 
         if (insideOval && !hasGenerated) {
           // const imageCheck = handleCaptureAndPredict()
@@ -422,40 +423,92 @@ const FaceScan = () => {
       return;
     }
 
-    const scaleFactor = 0.5; // Adjust as needed
+    const scaleFactor = 0.7; // Adjust as needed
+    
+    // Create an OffscreenCanvas to draw the scaled video frame
     const canvas = new OffscreenCanvas(video.videoWidth * scaleFactor, video.videoHeight * scaleFactor);
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
+    
+    // Compute bounding box based on landmarks
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    landmarks.forEach((point) => {
+      const x = point.x * canvas.width;
+      const y = point.y * canvas.height;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    });
+    
+    // Add some padding around the face
+    const padding = 100;
+    minX = Math.max(0, minX - padding);
+    minY = Math.max(0, minY - padding);
+    maxX = Math.min(canvas.width, maxX + padding);
+    maxY = Math.min(canvas.height, maxY + padding);
+    
+    const faceWidth = maxX - minX;
+    const faceHeight = maxY - minY;
+    
+    // Create a new canvas to crop the face
+    const faceCanvas = new OffscreenCanvas(faceWidth, faceHeight);
+    const faceCtx = faceCanvas.getContext("2d");
+    
+    // Draw the face region on the new canvas
+    faceCtx.drawImage(canvas, minX, minY, faceWidth, faceHeight, 0, 0, faceWidth, faceHeight);
+    
+    // Convert the cropped face to a Blob (JPEG format)
     setVerifyLoading(true);
-    // Convert canvas directly to a Blob (Avoids rendering lag)
-    const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.9 });
-
+    const blob = await faceCanvas.convertToBlob({ type: "image/jpeg", quality: 0.9 });
+    // Create FormData to append the Blob and send to the server
     const formData = new FormData();
     formData.append("file", blob, "image.jpg");
+    
 
     try {
+      // Make requests to both model APIs
       const response = await axios.post(`${import.meta.env.VITE_MODEL_API}/predict`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-
+    
+      const response1 = await axios.post(`${import.meta.env.VITE_MODEL_API}/dinov2/predict`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    
       setVerifyLoading(false);
-      // alert(response.data.predicted_class === 2 ? "Real" : "Fake")
-      const isPredictionSuccessful = response.data.predicted_class === 2; // Assuming 2 is the successful class
-
-      if (isPredictionSuccessful) {
+    
+      // Check predictions from both models
+      const vitPrediction = response.data.predicted_class === 2; // Assuming 2 means "Real"
+      const dinoPrediction = response1.data.predicted_class === "live"; // Assuming 2 means "Real"
+    
+      // Majority voting logic
+      if (vitPrediction && dinoPrediction) {
         Swal.fire({
           icon: "success",
           title: "You are Real!!",
           showConfirmButton: false,
           timer: 3000,
         });
-      } else {
+      } else if (!vitPrediction && !dinoPrediction) {
         Swal.fire({
           icon: "error",
           title: "You are Fake!!",
+          showConfirmButton: false,
+          timer: 3000,
+        });
+      } else {
+        // In case of disagreement between models, you can flag as uncertain or handle accordingly
+        Swal.fire({
+          icon: "warning",
+          title: "Uncertain, please try again!",
           showConfirmButton: false,
           timer: 3000,
         });
@@ -545,8 +598,8 @@ const FaceScan = () => {
 
     // Use the smaller dimension to keep proportions the same
     const minSize = Math.min(width, height);
-    const ovalWidth = minSize * 0.25; // 40% of minSize (narrower)
-    const ovalHeight = minSize * 0.35; // 70% of minSize (taller)
+    const ovalWidth =(minSize * 0.25) * 80/100; // 40% of minSize (narrower)
+    const ovalHeight =(minSize * 0.35) * 80/100; // 70% of minSize (taller)
     ctx.beginPath();
     ctx.ellipse(
       width / 2,
