@@ -7,7 +7,7 @@
 ### 1️⃣ Clone the repository  
 To get started, clone the **chiccheck-frontend** repository to your local machine:  
 ```bash
-git clone https://github.com/GitLabTCC/chiccheck-frontend.git  
+git clone https://github.com/KUChickCheck/chiccheck-frontend.git
 cd chiccheck-frontend
 ```
 
