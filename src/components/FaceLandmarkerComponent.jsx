@@ -73,7 +73,7 @@ const getRandomDirections = () => {
   return randomDirections;
 };
 
-const ovalPercent = 90
+const ovalPercent = 100
 
 const FaceScan = () => {
   const { user } = useSelector((state) => state.auth);
