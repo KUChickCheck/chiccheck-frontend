@@ -73,6 +73,8 @@ const getRandomDirections = () => {
   return randomDirections;
 };
 
+const ovalPercent = 90
+
 const FaceScan = () => {
   const { user } = useSelector((state) => state.auth);
   const [faceLandmarker, setFaceLandmarker] = useState(null);
@@ -598,8 +600,8 @@ const FaceScan = () => {
 
     // Use the smaller dimension to keep proportions the same
     const minSize = Math.min(width, height);
-    const ovalWidth =(minSize * 0.25) * 80/100; // 40% of minSize (narrower)
-    const ovalHeight =(minSize * 0.35) * 80/100; // 70% of minSize (taller)
+    const ovalWidth =(minSize * 0.25) * ovalPercent/100; // 40% of minSize (narrower)
+    const ovalHeight =(minSize * 0.35) * ovalPercent/100; // 70% of minSize (taller)
     ctx.beginPath();
     ctx.ellipse(
       width / 2,
@@ -633,8 +635,8 @@ const FaceScan = () => {
     const ovalX = width / 2;
     const ovalY = height / 2;
     const minSize = Math.min(width, height);
-    const ovalWidth =(minSize * 0.25) * 80/100; // 40% of minSize (narrower)
-    const ovalHeight =(minSize * 0.35) * 80/100; // 70% of minSize (taller)
+    const ovalWidth =(minSize * 0.25) * ovalPercent/100; // 40% of minSize (narrower)
+    const ovalHeight =(minSize * 0.35) * ovalPercent/100; // 70% of minSize (taller)
     // const ovalWidth = width / 4;
     // const ovalHeight = height / 3;
 
