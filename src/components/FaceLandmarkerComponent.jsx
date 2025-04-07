@@ -472,45 +472,39 @@ const FaceScan = () => {
     
 
     try {
-      // Make requests to both model APIs
-      const response = await axios.post(`${import.meta.env.VITE_MODEL_API}/predict`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-    
-      const response1 = await axios.post(`${import.meta.env.VITE_MODEL_API}/dinov2/predict`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Make requests to all model APIs
+      const [response, response1, response2] = await Promise.all([
+        axios.post(`${import.meta.env.VITE_MODEL_API}/predict`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        }),
+        axios.post(`${import.meta.env.VITE_MODEL_API}/predict/dinov2/v2.2.3`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        }),
+        axios.post(`${import.meta.env.VITE_MODEL_API}/predict/dinov2/v2.1.4`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        }),
+      ]);
     
       setVerifyLoading(false);
     
-      // Check predictions from both models
-      const vitPrediction = response.data.predicted_class === 2; // Assuming 2 means "Real"
-      const dinoPrediction = response1.data.predicted_class === "live"; // Assuming 2 means "Real"
+      // Normalize predictions
+      const vitPrediction = response.data.predicted_class === 2;       // Model 1
+      const dinoPrediction1 = response1.data.predicted_class === "live"; // Model 2
+      const dinoPrediction2 = response2.data.predicted_class === "live"; // Model 3
     
-      // Majority voting logic
-      if (vitPrediction && dinoPrediction) {
+      const realVotes = [vitPrediction, dinoPrediction1, dinoPrediction2].filter(Boolean).length;
+    
+      if (realVotes >= 2) {
         Swal.fire({
           icon: "success",
           title: "You are Real!!",
           showConfirmButton: false,
           timer: 3000,
         });
-      } else if (!vitPrediction && !dinoPrediction) {
+      } else if (realVotes <= 1) {
         Swal.fire({
           icon: "error",
           title: "You are Fake!!",
-          showConfirmButton: false,
-          timer: 3000,
-        });
-      } else {
-        // In case of disagreement between models, you can flag as uncertain or handle accordingly
-        Swal.fire({
-          icon: "warning",
-          title: "Uncertain, please try again!",
           showConfirmButton: false,
           timer: 3000,
         });
@@ -519,12 +513,14 @@ const FaceScan = () => {
       setVerifyLoading(false);
       Swal.fire({
         icon: "error",
-        title: error,
+        title: "Something went wrong!",
+        text: error.message || "Unknown error",
         showConfirmButton: false,
         timer: 3000,
       });
       console.error("Error sending image to API:", error);
     }
+    
   };
 
   const handleCaptureAndPredict = () => {
